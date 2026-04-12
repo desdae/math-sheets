@@ -131,6 +131,17 @@ Frontend runs on [http://localhost:5173](http://localhost:5173) and the backend 
 
 For the all-in-one Docker Compose stack, use [http://localhost:5180](http://localhost:5180) for the frontend and [http://localhost:3000](http://localhost:3000) for the backend.
 
+The Docker Compose frontend and backend services are configured for development hot reload:
+
+- frontend changes under `frontend/` should update through Vite HMR on `http://localhost:5180`
+- backend changes under `backend/` should restart the Express server through `tsx watch`
+
+If you change dependencies in `package.json`, rebuild the containers:
+
+```bash
+docker compose up --build
+```
+
 ## Docker PostgreSQL
 
 The app uses Docker Compose to run PostgreSQL.
