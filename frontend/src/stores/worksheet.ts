@@ -41,7 +41,10 @@ export type WorksheetRecord = {
   };
 };
 
+export type WorksheetSaveState = "idle" | "dirty" | "saving" | "saved" | "error";
+
 const anonymousStore = createAnonymousWorksheetStore();
+let autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
 
 const randomKey = () => `local-${crypto.randomUUID()}`;
 const cloneWorksheetRecord = (record: WorksheetRecord): WorksheetRecord => JSON.parse(JSON.stringify(record)) as WorksheetRecord;
@@ -82,11 +85,52 @@ export const useWorksheetStore = defineStore("worksheet", {
     remoteWorksheets: [] as Array<Record<string, unknown>>,
     activeWorksheet: null as WorksheetRecord | null,
     showImportModal: false,
-    isLoading: false
+    isLoading: false,
+    saveState: "idle" as WorksheetSaveState,
+    lastSavedAt: null as string | null
   }),
   actions: {
     syncAnonymousStorage() {
       anonymousStore.save(this.anonymousWorksheets);
+    },
+    clearAutoSaveTimer() {
+      if (autoSaveTimer) {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = null;
+      }
+    },
+    markSaveQueued() {
+      if (!this.activeWorksheet || this.activeWorksheet.status === "completed") {
+        return;
+      }
+
+      this.saveState = "dirty";
+    },
+    async autoSaveActiveWorksheet() {
+      if (!this.activeWorksheet || this.activeWorksheet.status === "completed") {
+        return;
+      }
+
+      this.saveState = "saving";
+
+      try {
+        await this.saveProgress(this.activeWorksheet);
+        this.lastSavedAt = new Date().toISOString();
+        this.saveState = "saved";
+      } catch {
+        this.saveState = "error";
+      }
+    },
+    queueAutoSave() {
+      if (!this.activeWorksheet || this.activeWorksheet.status === "completed") {
+        return;
+      }
+
+      this.markSaveQueued();
+      this.clearAutoSaveTimer();
+      autoSaveTimer = setTimeout(() => {
+        void this.autoSaveActiveWorksheet();
+      }, 500);
     },
     hydrateAnonymousWorksheets() {
       this.anonymousWorksheets = anonymousStore.load<WorksheetRecord>();
@@ -109,6 +153,9 @@ export const useWorksheetStore = defineStore("worksheet", {
         this.saveLocalWorksheet(record);
       }
 
+      this.saveState = "saved";
+      this.lastSavedAt = new Date().toISOString();
+
       return record;
     },
     saveLocalWorksheet(record: WorksheetRecord) {
@@ -123,15 +170,19 @@ export const useWorksheetStore = defineStore("worksheet", {
       this.syncAnonymousStorage();
     },
     updateAnswer(index: number, value: string) {
-      if (!this.activeWorksheet) {
+      if (!this.activeWorksheet || this.activeWorksheet.status === "completed") {
         return;
       }
 
       this.activeWorksheet.answers[index] = value;
       this.activeWorksheet.status = "partial";
+      this.queueAutoSave();
     },
     setActiveWorksheet(record: WorksheetRecord | null) {
+      this.clearAutoSaveTimer();
       this.activeWorksheet = record ? cloneWorksheetRecord(record) : null;
+      this.saveState = record ? (record.status === "completed" ? "idle" : "saved") : "idle";
+      this.lastSavedAt = null;
     },
     async persistSignedInWorksheet(record: WorksheetRecord) {
       const payload = await apiFetch<{
@@ -158,10 +209,17 @@ export const useWorksheetStore = defineStore("worksheet", {
         this.remoteWorksheets.unshift(summary);
       }
 
+      this.saveState = "saved";
+      this.lastSavedAt = new Date().toISOString();
+
       return this.activeWorksheet;
     },
     async saveProgress(record: WorksheetRecord) {
       const authStore = useAuthStore();
+
+      if (record.status === "completed") {
+        return record;
+      }
 
       if (!authStore.user || record.source === "local") {
         this.saveLocalWorksheet(record);
@@ -207,6 +265,9 @@ export const useWorksheetStore = defineStore("worksheet", {
           scoreTotal,
           accuracyPercentage: Number(((scoreCorrect / scoreTotal) * 100).toFixed(2))
         };
+        this.clearAutoSaveTimer();
+        this.saveState = "idle";
+        this.lastSavedAt = this.activeWorksheet.submittedAt;
         this.saveLocalWorksheet(this.activeWorksheet);
         return this.activeWorksheet.result;
       }
@@ -223,6 +284,9 @@ export const useWorksheetStore = defineStore("worksheet", {
       this.activeWorksheet.status = "completed";
       this.activeWorksheet.submittedAt = new Date().toISOString();
       this.activeWorksheet.result = result;
+      this.clearAutoSaveTimer();
+      this.saveState = "idle";
+      this.lastSavedAt = this.activeWorksheet.submittedAt;
       const existingIndex = this.remoteWorksheets.findIndex((entry) => String(entry.id) === String(this.activeWorksheet?.id));
       if (existingIndex >= 0) {
         this.remoteWorksheets.splice(existingIndex, 1, buildRemoteWorksheetSummary(this.activeWorksheet));

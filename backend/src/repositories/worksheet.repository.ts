@@ -1,4 +1,5 @@
 import { pool } from "../db/pool.js";
+import { HttpError } from "../lib/http-error.js";
 import { scoreWorksheet } from "../services/worksheet-scoring.service.js";
 import type {
   GeneratedQuestion,
@@ -121,6 +122,11 @@ export const saveWorksheetAnswers = async (input: {
 
   try {
     await client.query("BEGIN");
+    const worksheetResult = await client.query(`SELECT status FROM worksheets WHERE id = $1`, [input.worksheetId]);
+    if (worksheetResult.rows[0]?.status === "completed") {
+      throw new HttpError(409, "Completed worksheets cannot be changed");
+    }
+
     const attemptResult = await client.query(
       `SELECT id FROM worksheet_attempts WHERE worksheet_id = $1 ORDER BY started_at ASC LIMIT 1`,
       [input.worksheetId]

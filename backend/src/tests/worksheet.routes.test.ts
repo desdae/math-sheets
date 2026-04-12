@@ -1,6 +1,7 @@
 import request from "supertest";
 import { describe, expect, it } from "vitest";
 import { createApp } from "../app.js";
+import { isGoogleOAuthConfigured } from "../services/google-oauth.service.js";
 
 describe("health route", () => {
   it("returns ok", async () => {
@@ -44,6 +45,12 @@ describe("worksheet routes", () => {
 describe("auth routes", () => {
   it("returns a clear error when google oauth is not configured", async () => {
     const response = await request(createApp()).get("/api/auth/google");
+
+    if (isGoogleOAuthConfigured()) {
+      expect(response.status).toBe(302);
+      expect(response.headers.location).toContain("accounts.google.com");
+      return;
+    }
 
     expect(response.status).toBe(503);
     expect(response.text).toContain("Google OAuth is not configured");

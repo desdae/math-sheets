@@ -13,7 +13,7 @@ test("signed-in user can import local anonymous worksheets", async ({ page }) =>
   await expect(page.getByTestId("worksheet-grid")).toBeVisible();
 
   await page.getByTestId("answer-input-1").fill("9");
-  await page.getByRole("button", { name: "Save progress" }).click();
+  await expect(page.getByTestId("worksheet-save-status")).toContainText("Saved just now");
 
   const response = await page.context().request.post("http://127.0.0.1:3001/api/test-auth/login", {
     data: {

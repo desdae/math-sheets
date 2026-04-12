@@ -2,6 +2,8 @@
 
 MathSheets is a full-stack worksheet generator inspired by MathSheets. It lets users generate printable arithmetic worksheets, solve them online, save progress locally in anonymous mode, then upgrade to Google sign-in for synced history, statistics, and leaderboard participation.
 
+Worksheets auto-save while in progress, highlight unanswered problems before submission, reveal correctness only after submission, and lock once completed.
+
 ## Tech stack
 
 - Frontend: Vue 3, Vite, Pinia, Vue Router, Vitest

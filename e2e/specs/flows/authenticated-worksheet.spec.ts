@@ -13,11 +13,15 @@ test("authenticated user can create and submit a worksheet", async ({ page }) =>
   await expect(page.getByTestId("worksheet-grid")).toBeVisible();
 
   await page.getByTestId("answer-input-1").fill("7");
-  await page.getByRole("button", { name: "Save progress" }).click();
+  await expect(page.getByTestId("worksheet-save-status")).toContainText("Saved just now");
   await expect(page.getByTestId("worksheet-page")).toBeVisible();
 
-  await page.getByRole("button", { name: "Submit" }).click();
-  await expect(page.getByText("Completed")).toBeVisible();
+  await expect(page.getByTestId("worksheet-submit-warning")).toContainText("problems are still empty");
+  await page.getByTestId("submit-worksheet-button").click();
+  await expect(page.getByTestId("worksheet-submit-confirm")).toContainText("Submit with unanswered problems?");
+  await page.getByRole("button", { name: "Submit with blanks" }).click();
+  await expect(page.getByTestId("worksheet-save-status")).toContainText("Completed and locked");
+  await expect(page.getByTestId("answer-input-1")).toBeDisabled();
 
   await page.goto("/worksheets");
   await expect(page.getByTestId("saved-worksheets-page")).toBeVisible();
@@ -25,4 +29,5 @@ test("authenticated user can create and submit a worksheet", async ({ page }) =>
 
   await page.getByTestId("saved-remote-worksheet-link").first().click();
   await expect(page.getByTestId("worksheet-page")).toBeVisible();
+  await expect(page.getByTestId("answer-input-1")).toBeDisabled();
 });

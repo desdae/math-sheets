@@ -115,6 +115,10 @@ a {
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
+.worksheet-grid-solve {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
 .form-grid {
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 }
@@ -416,6 +420,110 @@ legend {
   background: var(--panel);
 }
 
+.worksheet-answer-card {
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+
+.worksheet-answer-shell {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--panel);
+}
+
+.worksheet-answer-shell-empty {
+  border-style: dashed;
+  background: rgba(200, 122, 25, 0.08);
+}
+
+.worksheet-answer-shell-correct {
+  border-color: rgba(45, 138, 90, 0.28);
+  background: rgba(45, 138, 90, 0.1);
+}
+
+.worksheet-answer-shell-wrong {
+  border-color: rgba(187, 63, 63, 0.28);
+  background: rgba(187, 63, 63, 0.1);
+}
+
+.worksheet-page-shell {
+  gap: 1.5rem;
+}
+
+.worksheet-page-header {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.worksheet-save-status {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.worksheet-review-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.worksheet-review-copy {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.worksheet-review-actions {
+  display: grid;
+  gap: 0.75rem;
+  justify-items: end;
+}
+
+.worksheet-submit-button {
+  min-width: 190px;
+}
+
+.worksheet-submit-warning,
+.worksheet-submit-confirm {
+  width: min(420px, 100%);
+  padding: 1rem 1.1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(200, 122, 25, 0.28);
+  background: rgba(200, 122, 25, 0.1);
+}
+
+.worksheet-submit-warning {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.worksheet-submit-confirm {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.worksheet-submit-confirm-copy {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.worksheet-submit-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.worksheet-result-card {
+  display: grid;
+  gap: 0.35rem;
+}
+
 .empty-state {
   padding: 2rem;
   border: 1px dashed var(--line);
@@ -471,6 +579,24 @@ legend {
   .site-header {
     flex-direction: column;
     align-items: start;
+  }
+
+  .worksheet-review-panel {
+    flex-direction: column;
+    align-items: start;
+  }
+
+  .worksheet-review-actions,
+  .worksheet-submit-confirm-actions {
+    width: 100%;
+    justify-items: stretch;
+    justify-content: stretch;
+  }
+
+  .worksheet-submit-warning,
+  .worksheet-submit-confirm,
+  .worksheet-submit-button {
+    width: 100%;
   }
 
   .generator-preview-panel {
