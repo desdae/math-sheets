@@ -1,0 +1,98 @@
+import { Router } from "express";
+import { asyncHandler } from "../lib/async-handler.js";
+import { authenticate } from "../middleware/authenticate.js";
+import { validateBody } from "../middleware/validate.js";
+import {
+  createWorksheetWithAttempt,
+  getWorksheetDetails,
+  importLocalWorksheets,
+  listWorksheetsByUserId,
+  saveWorksheetAnswers,
+  submitWorksheet
+} from "../repositories/worksheet.repository.js";
+import { importWorksheetsSchema, saveWorksheetSchema, submitWorksheetSchema, worksheetConfigSchema } from "../schemas/worksheet.schema.js";
+import { generateWorksheet } from "../services/worksheet-generator.service.js";
+
+export const worksheetRouter = Router();
+
+worksheetRouter.post("/generate", validateBody(worksheetConfigSchema), (req, res) => {
+  res.json(generateWorksheet(req.body));
+});
+
+worksheetRouter.post(
+  "/",
+  authenticate,
+  validateBody(worksheetConfigSchema),
+  asyncHandler(async (req, res) => {
+    const worksheet = generateWorksheet(req.body);
+    const persisted = await createWorksheetWithAttempt({
+      userId: req.user?.id ?? null,
+      title: worksheet.title,
+      config: worksheet.config,
+      questions: worksheet.questions,
+      source: "generated"
+    });
+
+    res.status(201).json({
+      worksheet: persisted.worksheet,
+      attempt: persisted.attempt,
+      questions: persisted.questions
+    });
+  })
+);
+
+worksheetRouter.get(
+  "/",
+  authenticate,
+  asyncHandler(async (req, res) => {
+    res.json(await listWorksheetsByUserId(req.user!.id));
+  })
+);
+
+worksheetRouter.get(
+  "/:id",
+  authenticate,
+  asyncHandler(async (req, res) => {
+    res.json(await getWorksheetDetails(String(req.params.id)));
+  })
+);
+
+worksheetRouter.patch(
+  "/:id/save",
+  authenticate,
+  validateBody(saveWorksheetSchema),
+  asyncHandler(async (req, res) => {
+    res.json(
+      await saveWorksheetAnswers({
+        worksheetId: String(req.params.id),
+        answers: req.body.answers,
+        elapsedSeconds: req.body.elapsedSeconds,
+        status: req.body.status
+      })
+    );
+  })
+);
+
+worksheetRouter.post(
+  "/:id/submit",
+  authenticate,
+  validateBody(submitWorksheetSchema),
+  asyncHandler(async (req, res) => {
+    res.json(
+      await submitWorksheet({
+        worksheetId: String(req.params.id),
+        answers: req.body.answers
+      })
+    );
+  })
+);
+
+worksheetRouter.post(
+  "/import-local",
+  authenticate,
+  validateBody(importWorksheetsSchema),
+  asyncHandler(async (req, res) => {
+    const imported = await importLocalWorksheets(req.user!.id, req.body.worksheets);
+    res.status(201).json({ importedCount: imported.length, worksheets: imported });
+  })
+);
