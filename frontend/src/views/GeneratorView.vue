@@ -4,6 +4,7 @@
       <div>
         <p class="eyebrow">Generator</p>
         <h1>Create a worksheet</h1>
+        <p class="lede">Build the practice set step by step, then review a live worksheet snapshot before you print or save it.</p>
       </div>
     </div>
 

@@ -6,4 +6,6 @@ test("generator page renders the form", async ({ page }) => {
 
   await expect(page.getByTestId("generator-page")).toBeVisible();
   await expect(page.getByTestId("generator-form")).toBeVisible();
+  await expect(page.getByTestId("generator-preview")).toBeVisible();
+  await expect(page.getByText("Step 1")).toBeVisible();
 });

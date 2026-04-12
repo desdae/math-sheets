@@ -85,6 +85,7 @@ a {
 .hero-panel,
 .two-column,
 .saved-layout,
+.generator-studio-layout,
 .stat-grid,
 .worksheet-grid,
 .form-grid {
@@ -99,6 +100,11 @@ a {
 
 .saved-layout-single {
   grid-template-columns: 1fr;
+}
+
+.generator-studio-layout {
+  grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.9fr);
+  align-items: start;
 }
 
 .stat-grid {
@@ -125,6 +131,10 @@ a {
 .card,
 .hero-preview {
   padding: 1.25rem;
+}
+
+.generator-form {
+  display: block;
 }
 
 .hero-panel {
@@ -176,6 +186,11 @@ button {
   color: var(--text);
 }
 
+button:hover,
+.button:hover {
+  filter: brightness(0.98);
+}
+
 input,
 select {
   width: 100%;
@@ -205,9 +220,193 @@ legend {
   gap: 0.75rem;
 }
 
+.checkbox-row span {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.checkbox-row small {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
 .checkbox-row input,
 .operation-picker input {
   width: auto;
+}
+
+.generator-studio-steps {
+  display: grid;
+  gap: 1rem;
+}
+
+.generator-step {
+  display: grid;
+  gap: 1.1rem;
+  padding: 1.4rem;
+}
+
+.generator-step-header {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.generator-step-header h2,
+.generator-preview-top h2 {
+  font-size: clamp(1.35rem, 2vw, 1.9rem);
+  line-height: 1.05;
+}
+
+.generator-step-header p:last-child,
+.generator-preview-top p:last-child,
+.generator-preview-note p {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.generator-step-grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.operation-picker {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  padding: 0;
+  border: none;
+}
+
+.operation-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.72);
+  transition:
+    border-color 140ms ease,
+    transform 140ms ease,
+    background-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.operation-chip:hover {
+  transform: translateY(-1px);
+  border-color: rgba(207, 92, 54, 0.35);
+}
+
+.operation-chip-active {
+  background: rgba(207, 92, 54, 0.1);
+  border-color: rgba(207, 92, 54, 0.42);
+  box-shadow: inset 0 0 0 1px rgba(207, 92, 54, 0.06);
+}
+
+.checkbox-panel {
+  align-items: start;
+  padding: 1rem 1.05rem;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.75), rgba(245, 239, 229, 0.75));
+}
+
+.checkbox-panel strong {
+  font-size: 1rem;
+}
+
+.generator-preview-panel {
+  position: sticky;
+  top: 5.5rem;
+  display: grid;
+  gap: 1rem;
+  padding: 1.4rem;
+  border-radius: 28px;
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(180deg, rgba(255, 253, 248, 0.98), rgba(250, 243, 234, 0.98)),
+    radial-gradient(circle at top right, rgba(207, 92, 54, 0.12), transparent 30%);
+  box-shadow: var(--shadow);
+}
+
+.generator-preview-top {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.generator-preview-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.generator-preview-metric {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.9rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(30, 31, 41, 0.08);
+}
+
+.generator-preview-metric strong {
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.generator-preview-sheet {
+  display: grid;
+  gap: 1rem;
+  padding: 1.15rem;
+  border-radius: 22px;
+  background: white;
+  border: 1px solid rgba(30, 31, 41, 0.08);
+}
+
+.generator-preview-sheet-header,
+.generator-preview-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.generator-preview-sheet-header {
+  align-items: start;
+}
+
+.generator-preview-size {
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.generator-preview-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.generator-preview-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  font-weight: 600;
+}
+
+.generator-preview-blank {
+  display: inline-block;
+  width: 72px;
+  border-bottom: 2px solid rgba(30, 31, 41, 0.18);
+}
+
+.generator-preview-note {
+  display: grid;
+  gap: 0.25rem;
 }
 
 .worksheet-cell {
@@ -263,11 +462,23 @@ legend {
 @media (max-width: 800px) {
   .hero-panel,
   .two-column,
-  .stat-grid {
+  .stat-grid,
+  .generator-studio-layout,
+  .generator-preview-metrics {
     grid-template-columns: 1fr;
   }
 
   .site-header {
+    flex-direction: column;
+    align-items: start;
+  }
+
+  .generator-preview-panel {
+    position: static;
+  }
+
+  .generator-preview-sheet-header,
+  .generator-preview-footer {
     flex-direction: column;
     align-items: start;
   }
