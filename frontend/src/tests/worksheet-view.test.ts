@@ -89,4 +89,19 @@ describe("WorksheetView", () => {
     expect(wrapper.find('[data-testid="answer-state-3"]').attributes("data-answer-state")).toBe("wrong");
     expect(wrapper.find('[data-testid="answer-input-1"]').attributes("disabled")).toBeDefined();
   });
+
+  it("applies the configured worksheet size to the grid layout", async () => {
+    const worksheetStore = useWorksheetStore();
+    worksheetStore.setActiveWorksheet({
+      ...buildWorksheet(),
+      config: {
+        ...buildWorksheet().config,
+        worksheetSize: "large"
+      }
+    });
+
+    const wrapper = mount(WorksheetView);
+
+    expect(wrapper.get('[data-testid="worksheet-grid"]').attributes("data-worksheet-size")).toBe("large");
+  });
 });

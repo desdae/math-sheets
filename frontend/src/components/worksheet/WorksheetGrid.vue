@@ -1,5 +1,10 @@
 <template>
-  <section data-testid="worksheet-grid" class="worksheet-grid worksheet-grid-solve">
+  <section
+    data-testid="worksheet-grid"
+    class="worksheet-grid worksheet-grid-solve"
+    :class="`worksheet-grid-size-${worksheetSize}`"
+    :data-worksheet-size="worksheetSize"
+  >
     <article
       v-for="question in questions"
       :key="question.id ?? question.questionOrder"
@@ -33,6 +38,7 @@ defineProps<{
   questions: WorksheetQuestion[];
   answers: Array<string | null>;
   answerStates: Array<"empty" | "filled" | "correct" | "wrong">;
+  worksheetSize: "small" | "medium" | "large";
   disabled?: boolean;
 }>();
 

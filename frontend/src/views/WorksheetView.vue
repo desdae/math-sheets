@@ -15,6 +15,7 @@
       :questions="worksheet.questions"
       :answers="worksheet.answers"
       :answer-states="answerStates"
+      :worksheet-size="worksheet.config.worksheetSize"
       :disabled="isCompleted"
       @update-answer="worksheetStore.updateAnswer"
     />
