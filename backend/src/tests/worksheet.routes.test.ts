@@ -40,6 +40,21 @@ describe("worksheet routes", () => {
 
     expect(response.status).toBe(400);
   });
+
+  it("rejects worksheet configs that cannot produce enough unique problems", async () => {
+    const response = await request(createApp()).post("/api/worksheets/generate").send({
+      problemCount: 2,
+      difficulty: "easy",
+      allowedOperations: ["+"],
+      numberRangeMin: 1,
+      numberRangeMax: 1,
+      worksheetSize: "small",
+      cleanDivisionOnly: true
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toContain("Unable to generate enough unique problems");
+  });
 });
 
 describe("auth routes", () => {
