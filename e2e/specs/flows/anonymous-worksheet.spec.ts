@@ -5,11 +5,10 @@ test("anonymous user can generate, save, reopen, and submit a worksheet", async 
   await page.goto("/generate");
   await page.getByTestId("generate-submit").click();
 
+  await expect(page).toHaveURL(/\/worksheets\/.+$/);
   await expect(page.getByTestId("worksheet-grid")).toBeVisible();
   await page.getByTestId("answer-input-1").fill("5");
-  await page.getByRole("button", { name: "Save draft" }).click();
-
-  await expect(page).toHaveURL(/\/worksheets\/.+$/);
+  await page.getByRole("button", { name: "Save progress" }).click();
 
   await page.goto("/worksheets");
   await expect(page.getByTestId("saved-worksheets-page")).toBeVisible();

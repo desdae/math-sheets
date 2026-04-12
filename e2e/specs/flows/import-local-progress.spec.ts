@@ -9,10 +9,11 @@ test.beforeEach(async () => {
 test("signed-in user can import local anonymous worksheets", async ({ page }) => {
   await page.goto("/generate");
   await page.getByTestId("generate-submit").click();
+  await expect(page).toHaveURL(/\/worksheets\/.+$/);
   await expect(page.getByTestId("worksheet-grid")).toBeVisible();
 
   await page.getByTestId("answer-input-1").fill("9");
-  await page.getByRole("button", { name: "Save draft" }).click();
+  await page.getByRole("button", { name: "Save progress" }).click();
 
   const response = await page.context().request.post("http://127.0.0.1:3001/api/test-auth/login", {
     data: {
