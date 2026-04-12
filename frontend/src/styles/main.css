@@ -84,6 +84,7 @@ a {
 
 .hero-panel,
 .two-column,
+.saved-layout,
 .stat-grid,
 .worksheet-grid,
 .form-grid {
@@ -94,6 +95,10 @@ a {
 .hero-panel,
 .two-column {
   grid-template-columns: 1.4fr 1fr;
+}
+
+.saved-layout-single {
+  grid-template-columns: 1fr;
 }
 
 .stat-grid {

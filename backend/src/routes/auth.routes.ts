@@ -3,7 +3,7 @@ import { env } from "../config/env.js";
 import { asyncHandler } from "../lib/async-handler.js";
 import { authenticate } from "../middleware/authenticate.js";
 import { findOrCreateUserFromGoogleProfile, findUserById } from "../repositories/user.repository.js";
-import { exchangeCodeForGoogleProfile } from "../services/google-oauth.service.js";
+import { exchangeCodeForGoogleProfile, isGoogleOAuthConfigured } from "../services/google-oauth.service.js";
 import {
   issueSessionTokens,
   readRefreshTokenCookie,
@@ -14,6 +14,10 @@ import {
 export const authRouter = Router();
 
 authRouter.get("/google", (_req, res) => {
+  if (!isGoogleOAuthConfigured()) {
+    return res.status(503).send("Google OAuth is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET, then restart the backend.");
+  }
+
   const params = new URLSearchParams({
     client_id: env.GOOGLE_CLIENT_ID,
     redirect_uri: env.GOOGLE_CALLBACK_URL,

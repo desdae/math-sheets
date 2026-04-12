@@ -2,8 +2,14 @@ import { OAuth2Client } from "google-auth-library";
 import { env } from "../config/env.js";
 import type { GoogleProfile } from "../types/auth.js";
 
+const hasPlaceholderGoogleConfig = () =>
+  env.GOOGLE_CLIENT_ID === "your-google-client-id" || env.GOOGLE_CLIENT_SECRET === "your-google-client-secret";
+
+export const isGoogleOAuthConfigured = () =>
+  Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET && !hasPlaceholderGoogleConfig());
+
 const googleClient =
-  env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
+  isGoogleOAuthConfigured()
     ? new OAuth2Client(env.GOOGLE_CLIENT_ID, env.GOOGLE_CLIENT_SECRET, env.GOOGLE_CALLBACK_URL)
     : null;
 

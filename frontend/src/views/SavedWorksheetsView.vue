@@ -7,8 +7,8 @@
       </div>
     </div>
 
-    <div class="two-column">
-      <div class="page-stack">
+    <div :class="hasLocalWorksheets ? 'two-column' : 'saved-layout-single'" class="saved-layout">
+      <div v-if="hasLocalWorksheets" class="page-stack">
         <h2>Local</h2>
         <RouterLink
           v-for="worksheet in worksheetStore.anonymousWorksheets"
@@ -28,7 +28,7 @@
       </div>
 
       <div class="page-stack">
-        <h2>Synced</h2>
+        <h2 v-if="hasLocalWorksheets">Synced</h2>
         <RouterLink
           v-for="worksheet in worksheetStore.remoteWorksheets"
           :key="String(worksheet.id)"
@@ -50,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { computed, onMounted } from "vue";
 import { RouterLink } from "vue-router";
 import EmptyState from "../components/common/EmptyState.vue";
 import { useAuthStore } from "../stores/auth";
@@ -58,6 +58,7 @@ import { useWorksheetStore } from "../stores/worksheet";
 
 const authStore = useAuthStore();
 const worksheetStore = useWorksheetStore();
+const hasLocalWorksheets = computed(() => worksheetStore.anonymousWorksheets.length > 0);
 
 onMounted(async () => {
   if (authStore.user) {

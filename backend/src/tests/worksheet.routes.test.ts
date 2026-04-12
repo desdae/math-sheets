@@ -42,6 +42,13 @@ describe("worksheet routes", () => {
 });
 
 describe("auth routes", () => {
+  it("returns a clear error when google oauth is not configured", async () => {
+    const response = await request(createApp()).get("/api/auth/google");
+
+    expect(response.status).toBe(503);
+    expect(response.text).toContain("Google OAuth is not configured");
+  });
+
   it("returns unauthorized for unauthenticated me requests", async () => {
     const response = await request(createApp()).get("/api/auth/me");
     expect(response.status).toBe(401);
