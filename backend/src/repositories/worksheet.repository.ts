@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { pool } from "../db/pool.js";
 import { HttpError } from "../lib/http-error.js";
 import { scoreWorksheet } from "../services/worksheet-scoring.service.js";
@@ -21,7 +22,15 @@ const mapWorksheetRow = (row: Record<string, unknown>) => ({
   cleanDivisionOnly: row.clean_division_only,
   source: row.source,
   createdAt: row.created_at,
-  submittedAt: row.submitted_at
+  submittedAt: row.submitted_at,
+  result:
+    row.score_total != null
+      ? {
+          scoreCorrect: Number(row.score_correct),
+          scoreTotal: Number(row.score_total),
+          accuracyPercentage: Number(row.accuracy_percentage)
+        }
+      : undefined
 });
 
 export const createWorksheetWithAttempt = async (input: {
@@ -55,7 +64,7 @@ export const createWorksheetWithAttempt = async (input: {
         input.config.worksheetSize,
         input.config.cleanDivisionOnly,
         input.source,
-        input.localImportKey ?? null
+        input.localImportKey ?? randomUUID()
       ]
     );
 
@@ -323,7 +332,20 @@ export const importLocalWorksheets = async (
 
 export const listWorksheetsByUserId = async (userId: string) => {
   const result = await pool.query(
-    `SELECT * FROM worksheets WHERE user_id = $1 ORDER BY created_at DESC`,
+    `SELECT w.*,
+            att.score_correct,
+            att.score_total,
+            att.accuracy_percentage
+     FROM worksheets w
+     LEFT JOIN LATERAL (
+       SELECT score_correct, score_total, accuracy_percentage
+       FROM worksheet_attempts
+       WHERE worksheet_id = w.id
+       ORDER BY started_at ASC
+       LIMIT 1
+     ) att ON TRUE
+     WHERE w.user_id = $1
+     ORDER BY w.created_at DESC`,
     [userId]
   );
 

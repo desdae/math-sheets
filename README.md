@@ -24,6 +24,7 @@ Worksheets auto-save while in progress, highlight unanswered problems before sub
   - worksheet size
 - Save as draft or partial progress
 - Submit and score worksheets
+- Saved worksheets grouped into recent timeline sections with filters for status, difficulty, operation, and worksheet size
 - Per-user statistics
 - Daily, weekly, and monthly leaderboards
 - Print-friendly worksheet layout

@@ -27,3 +27,20 @@ export const resetE2EDatabase = async () => {
 
   await pool.end();
 };
+
+export const setWorksheetCreatedAt = async (worksheetId: string, isoDate: string) => {
+  const pool = new pg.Pool({
+    connectionString: process.env.DATABASE_URL
+  });
+
+  await pool.query(
+    `
+      UPDATE worksheets
+      SET created_at = $2, updated_at = $2, started_at = $2
+      WHERE id = $1
+    `,
+    [worksheetId, isoDate]
+  );
+
+  await pool.end();
+};

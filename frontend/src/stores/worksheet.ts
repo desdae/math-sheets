@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { anonymousImportDecisionKey, anonymousWorksheetsKey, createAnonymousWorksheetStore } from "../composables/useAnonymousWorksheets";
 import { apiFetch } from "../lib/api";
+import type { WorksheetSummaryRecord } from "../lib/saved-worksheets";
 import { useAuthStore } from "./auth";
 
 export type WorksheetConfig = {
@@ -63,7 +64,7 @@ const buildLocalWorksheet = (payload: {
   localImportKey: randomKey(),
   createdAt: new Date().toISOString()
 });
-const buildRemoteWorksheetSummary = (record: WorksheetRecord) => ({
+const buildRemoteWorksheetSummary = (record: WorksheetRecord): WorksheetSummaryRecord => ({
   id: record.id,
   title: record.title,
   status: record.status,
@@ -76,13 +77,14 @@ const buildRemoteWorksheetSummary = (record: WorksheetRecord) => ({
   cleanDivisionOnly: record.config.cleanDivisionOnly,
   source: "generated",
   createdAt: record.createdAt,
-  submittedAt: record.submittedAt ?? null
+  submittedAt: record.submittedAt ?? null,
+  result: record.result
 });
 
 export const useWorksheetStore = defineStore("worksheet", {
   state: () => ({
     anonymousWorksheets: anonymousStore.load<WorksheetRecord>(),
-    remoteWorksheets: [] as Array<Record<string, unknown>>,
+    remoteWorksheets: [] as WorksheetSummaryRecord[],
     activeWorksheet: null as WorksheetRecord | null,
     showImportModal: false,
     isLoading: false,
@@ -301,7 +303,7 @@ export const useWorksheetStore = defineStore("worksheet", {
         return;
       }
 
-      this.remoteWorksheets = await apiFetch("/worksheets");
+      this.remoteWorksheets = await apiFetch<WorksheetSummaryRecord[]>("/worksheets");
     },
     async maybePromptForImport() {
       const authStore = useAuthStore();
