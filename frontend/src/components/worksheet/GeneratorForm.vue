@@ -99,7 +99,7 @@
           </div>
           <div class="generator-preview-metric">
             <span class="stat-label">Range</span>
-            <strong>{{ form.numberRangeMin }}-{{ form.numberRangeMax }}</strong>
+            <strong>{{ normalizedRangeMin }}-{{ normalizedRangeMax }}</strong>
           </div>
           <div class="generator-preview-metric">
             <span class="stat-label">Mix</span>
@@ -117,8 +117,8 @@
           </div>
 
           <ol class="generator-preview-list">
-            <li v-for="question in previewQuestions" :key="question">
-              <span>{{ question }}</span>
+            <li v-for="question in previewQuestions" :key="question.id">
+              <span>{{ question.text }}</span>
               <span class="generator-preview-blank"></span>
             </li>
           </ol>
@@ -182,12 +182,12 @@ const previewDescription = computed(
 const divisionNote = computed(() =>
   form.cleanDivisionOnly ? "Division samples stay clean and whole-number friendly." : "Division samples may include tougher results."
 );
-
-const clampMax = computed(() => Math.max(form.numberRangeMin + 1, form.numberRangeMax));
+const normalizedRangeMin = computed(() => Math.min(form.numberRangeMin, form.numberRangeMax));
+const normalizedRangeMax = computed(() => Math.max(form.numberRangeMin, form.numberRangeMax));
 const buildPreviewQuestion = (operation: WorksheetConfig["allowedOperations"][number], index: number) => {
-  const min = form.numberRangeMin;
-  const max = clampMax.value;
-  const spread = Math.max(1, max - min);
+  const min = normalizedRangeMin.value;
+  const max = normalizedRangeMax.value;
+  const spread = Math.max(1, max - min + 1);
   const first = min + ((index * 7 + 3) % spread);
   const second = min + ((index * 5 + 2) % spread);
 
@@ -214,8 +214,16 @@ const buildPreviewQuestion = (operation: WorksheetConfig["allowedOperations"][nu
 };
 
 const previewQuestions = computed(() =>
-  Array.from({ length: 4 }, (_, index) => buildPreviewQuestion(form.allowedOperations[index % form.allowedOperations.length], index))
+  Array.from({ length: 4 }, (_, index) => ({
+    id: `preview-question-${index}`,
+    text: buildPreviewQuestion(form.allowedOperations[index % form.allowedOperations.length], index)
+  }))
 );
 
-const emitGenerate = () => emit("generate", { ...form });
+const emitGenerate = () =>
+  emit("generate", {
+    ...form,
+    numberRangeMin: normalizedRangeMin.value,
+    numberRangeMax: normalizedRangeMax.value
+  });
 </script>

@@ -56,4 +56,41 @@ describe("GeneratorForm", () => {
 
     expect(wrapper.find('[data-testid="preview-problem-count"]').text()).toContain("24 problems");
   });
+
+  it("normalizes reversed number ranges before emitting and in the preview", async () => {
+    const wrapper = mount(GeneratorForm);
+
+    await wrapper.findAll('input[type="number"]')[1].setValue("454");
+    await wrapper.findAll('input[type="number"]')[2].setValue("10");
+    await nextTick();
+
+    expect(wrapper.text()).toContain("10-454");
+
+    await wrapper.find("form").trigger("submit");
+
+    const payload = wrapper.emitted("generate")?.[0]?.[0] as {
+      numberRangeMin: number;
+      numberRangeMax: number;
+    };
+
+    expect(payload.numberRangeMin).toBe(10);
+    expect(payload.numberRangeMax).toBe(454);
+  });
+
+  it("uses stable unique keys even when preview questions repeat", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const wrapper = mount(GeneratorForm);
+    await wrapper.findAll('input[type="number"]')[1].setValue("454");
+    await wrapper.findAll('input[type="number"]')[2].setValue("10");
+    await nextTick();
+
+    expect(wrapper.findAll(".generator-preview-list li")).toHaveLength(4);
+    expect(errorSpy.mock.calls.flat().join(" ")).not.toContain("Duplicate keys");
+    expect(warnSpy.mock.calls.flat().join(" ")).not.toContain("Duplicate keys");
+
+    errorSpy.mockRestore();
+    warnSpy.mockRestore();
+  });
 });
