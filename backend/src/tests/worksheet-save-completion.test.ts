@@ -126,4 +126,98 @@ describe("saveWorksheetAnswers", () => {
     });
     expect(queryMock.mock.calls.some((call) => String(call[0]).includes("INSERT INTO user_statistics"))).toBe(false);
   });
+
+  it("imports completed local worksheets by creating them in a submit-ready state first", async () => {
+    queryMock
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: "worksheet-3",
+            title: "Imported Worksheet",
+            status: "partial",
+            difficulty: "easy",
+            problem_count: 1,
+            allowed_operations: ["+"],
+            number_range_min: 1,
+            number_range_max: 10,
+            worksheet_size: "small",
+            clean_division_only: true,
+            source: "imported",
+            created_at: "2026-04-10T09:00:00.000Z",
+            submitted_at: null
+          }
+        ]
+      })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: "question-3",
+            question_order: 1,
+            operation: "+",
+            left_operand: 2,
+            right_operand: 3,
+            display_text: "2 + 3 =",
+            correct_answer: 5
+          }
+        ]
+      })
+      .mockResolvedValueOnce({ rows: [{ id: "attempt-3", elapsed_seconds: 45 }] })
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce({ rows: [{ id: "worksheet-3", status: "partial", awards_credit: false }] })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: "question-3",
+            question_order: 1,
+            operation: "+",
+            left_operand: 2,
+            right_operand: 3,
+            display_text: "2 + 3 =",
+            correct_answer: 5
+          }
+        ]
+      })
+      .mockResolvedValueOnce({ rows: [{ id: "attempt-3", user_id: "user-1", elapsed_seconds: 45 }] })
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(undefined);
+
+    const { importLocalWorksheets } = await import("../repositories/worksheet.repository.js");
+
+    await importLocalWorksheets("user-1", [
+      {
+        localImportKey: "import-key",
+        title: "Imported Worksheet",
+        status: "completed",
+        config: {
+          problemCount: 1,
+          difficulty: "easy",
+          allowedOperations: ["+"],
+          numberRangeMin: 1,
+          numberRangeMax: 10,
+          worksheetSize: "small",
+          cleanDivisionOnly: true
+        },
+        questions: [
+          {
+            questionOrder: 1,
+            operation: "+",
+            leftOperand: 2,
+            rightOperand: 3,
+            displayText: "2 + 3 =",
+            correctAnswer: 5
+          }
+        ],
+        answers: ["5"],
+        createdAt: "2026-04-10T09:00:00.000Z",
+        elapsedSeconds: 45
+      }
+    ]);
+
+    expect(queryMock.mock.calls[1]?.[1]?.[2]).toBe("partial");
+    expect(queryMock.mock.calls[3]?.[1]?.[2]).toBe("partial");
+  });
 });

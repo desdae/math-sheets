@@ -385,6 +385,7 @@ export const importLocalWorksheets = async (
   const imported = [];
 
   for (const worksheet of worksheets) {
+    const initialStatus = worksheet.status === "completed" ? "partial" : worksheet.status;
     const created = await createWorksheetWithAttempt({
       userId,
       title: worksheet.title,
@@ -392,7 +393,7 @@ export const importLocalWorksheets = async (
       questions: worksheet.questions,
       source: "imported",
       localImportKey: worksheet.localImportKey,
-      status: worksheet.status,
+      status: initialStatus,
       createdAt: worksheet.createdAt,
       elapsedSeconds: worksheet.elapsedSeconds
     });
