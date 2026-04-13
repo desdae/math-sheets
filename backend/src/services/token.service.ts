@@ -1,7 +1,12 @@
 import type { Request } from "express";
 import { createHash } from "node:crypto";
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from "../lib/jwt.js";
-import { createRefreshToken, revokeRefreshToken, findActiveRefreshToken } from "../repositories/token.repository.js";
+import {
+  createRefreshToken,
+  revokeRefreshToken,
+  findActiveRefreshToken,
+  revokeRefreshTokenByHash
+} from "../repositories/token.repository.js";
 
 const cookieName = "mathsheets_refresh_token";
 
@@ -35,6 +40,15 @@ export const rotateRefreshToken = async (refreshToken: string | undefined) => {
 
   await revokeRefreshToken(existing.id);
   return issueSessionTokens(payload.userId);
+};
+
+export const revokeRefreshTokenFromCookie = async (refreshToken: string | undefined) => {
+  if (!refreshToken) {
+    return;
+  }
+
+  const payload = verifyRefreshToken(refreshToken);
+  await revokeRefreshTokenByHash(payload.userId, hashToken(refreshToken));
 };
 
 export const refreshCookieName = cookieName;

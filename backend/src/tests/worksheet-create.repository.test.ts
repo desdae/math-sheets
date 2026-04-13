@@ -87,7 +87,8 @@ describe("createWorksheetWithAttempt", () => {
       source: "generated"
     });
 
-    expect(queryMock.mock.calls[1]?.[1]?.[11]).toBeTruthy();
+    expect(queryMock.mock.calls[1]?.[1]?.[11]).toBe(true);
+    expect(queryMock.mock.calls[1]?.[1]?.[12]).toBeTruthy();
   });
 
   it("preserves an imported worksheet createdAt timestamp", async () => {
@@ -159,6 +160,7 @@ describe("createWorksheetWithAttempt", () => {
       createdAt: importedCreatedAt
     });
 
-    expect(queryMock.mock.calls[1]?.[1]?.[12]).toBe(importedCreatedAt);
+    expect(queryMock.mock.calls[1]?.[1]?.[11]).toBe(false);
+    expect(queryMock.mock.calls[1]?.[1]?.[13]).toBe(importedCreatedAt);
   });
 });

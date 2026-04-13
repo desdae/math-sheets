@@ -54,6 +54,10 @@ export const useAuthStore = defineStore("auth", {
       this.setAccessToken(payload.accessToken);
       return payload.accessToken;
     },
+    async restoreSessionFromRefreshCookie() {
+      await this.refreshAccessToken();
+      await this.fetchMe();
+    },
     async logout() {
       await apiFetch("/auth/logout", { method: "POST" });
       this.setAccessToken(null);

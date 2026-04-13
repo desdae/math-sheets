@@ -53,7 +53,7 @@ worksheetRouter.get(
   "/:id",
   authenticate,
   asyncHandler(async (req, res) => {
-    res.json(await getWorksheetDetails(String(req.params.id)));
+    res.json(await getWorksheetDetails(String(req.params.id), req.user!.id));
   })
 );
 
@@ -65,6 +65,7 @@ worksheetRouter.patch(
     res.json(
       await saveWorksheetAnswers({
         worksheetId: String(req.params.id),
+        userId: req.user!.id,
         answers: req.body.answers,
         elapsedSeconds: req.body.elapsedSeconds,
         status: req.body.status
@@ -81,6 +82,7 @@ worksheetRouter.post(
     res.json(
       await submitWorksheet({
         worksheetId: String(req.params.id),
+        userId: req.user!.id,
         answers: req.body.answers
       })
     );

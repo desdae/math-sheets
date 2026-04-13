@@ -33,6 +33,28 @@ const mapWorksheetRow = (row: Record<string, unknown>) => ({
       : undefined
 });
 
+const findOwnedWorksheet = async (
+  client: typeof pool | Awaited<ReturnType<typeof pool.connect>>,
+  worksheetId: string,
+  userId: string
+) => {
+  const result = await client.query(
+    `SELECT id, status, source, awards_credit
+     FROM worksheets
+     WHERE id = $1 AND user_id = $2
+     LIMIT 1`,
+    [worksheetId, userId]
+  );
+
+  const worksheet = result.rows[0];
+
+  if (!worksheet) {
+    throw new HttpError(404, "Worksheet not found");
+  }
+
+  return worksheet;
+};
+
 export const createWorksheetWithAttempt = async (input: {
   userId: string | null;
   title: string;
@@ -45,14 +67,15 @@ export const createWorksheetWithAttempt = async (input: {
 }) => {
   const client = await pool.connect();
   const initialTimestamp = input.createdAt ?? new Date().toISOString();
+  const awardsCredit = input.source === "generated";
 
   try {
     await client.query("BEGIN");
     const worksheetResult = await client.query(
       `INSERT INTO worksheets (
         user_id, title, status, difficulty, problem_count, allowed_operations,
-        number_range_min, number_range_max, worksheet_size, clean_division_only, source, local_import_key, started_at, created_at
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+        number_range_min, number_range_max, worksheet_size, clean_division_only, source, awards_credit, local_import_key, started_at, created_at
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
       RETURNING *`,
       [
         input.userId,
@@ -66,6 +89,7 @@ export const createWorksheetWithAttempt = async (input: {
         input.config.worksheetSize,
         input.config.cleanDivisionOnly,
         input.source,
+        awardsCredit,
         input.localImportKey ?? randomUUID(),
         initialTimestamp,
         initialTimestamp
@@ -127,6 +151,7 @@ export const createWorksheetWithAttempt = async (input: {
 
 export const saveWorksheetAnswers = async (input: {
   worksheetId: string;
+  userId: string;
   answers: WorksheetAnswerInput[];
   elapsedSeconds: number;
   status: "draft" | "partial";
@@ -135,8 +160,8 @@ export const saveWorksheetAnswers = async (input: {
 
   try {
     await client.query("BEGIN");
-    const worksheetResult = await client.query(`SELECT status FROM worksheets WHERE id = $1`, [input.worksheetId]);
-    if (worksheetResult.rows[0]?.status === "completed") {
+    const worksheet = await findOwnedWorksheet(client, input.worksheetId, input.userId);
+    if (worksheet.status === "completed") {
       throw new HttpError(409, "Completed worksheets cannot be changed");
     }
 
@@ -146,6 +171,14 @@ export const saveWorksheetAnswers = async (input: {
     );
 
     const attemptId = attemptResult.rows[0]?.id;
+    const questionResult = await client.query(`SELECT id FROM worksheet_questions WHERE worksheet_id = $1`, [input.worksheetId]);
+    const allowedQuestionIds = new Set(questionResult.rows.map((row: { id: string }) => row.id));
+
+    for (const answer of input.answers) {
+      if (!allowedQuestionIds.has(answer.questionId)) {
+        throw new HttpError(400, "Answer question does not belong to worksheet");
+      }
+    }
 
     for (const answer of input.answers) {
       await client.query(
@@ -179,8 +212,13 @@ export const saveWorksheetAnswers = async (input: {
   }
 };
 
-export const getWorksheetDetails = async (worksheetId: string) => {
-  const worksheetResult = await pool.query(`SELECT * FROM worksheets WHERE id = $1`, [worksheetId]);
+export const getWorksheetDetails = async (worksheetId: string, userId: string) => {
+  const worksheetResult = await pool.query(`SELECT * FROM worksheets WHERE id = $1 AND user_id = $2`, [worksheetId, userId]);
+
+  if (!worksheetResult.rows[0]) {
+    throw new HttpError(404, "Worksheet not found");
+  }
+
   const questionResult = await pool.query(
     `SELECT * FROM worksheet_questions WHERE worksheet_id = $1 ORDER BY question_order ASC`,
     [worksheetId]
@@ -214,11 +252,17 @@ export const getWorksheetDetails = async (worksheetId: string) => {
   };
 };
 
-export const submitWorksheet = async (input: { worksheetId: string; answers: Array<string | null> }) => {
+export const submitWorksheet = async (input: { worksheetId: string; userId: string; answers: Array<string | null> }) => {
   const client = await pool.connect();
 
   try {
     await client.query("BEGIN");
+    const worksheet = await findOwnedWorksheet(client, input.worksheetId, input.userId);
+
+    if (worksheet.status === "completed") {
+      throw new HttpError(409, "Completed worksheets cannot be changed");
+    }
+
     const questionResult = await client.query(
       `SELECT * FROM worksheet_questions WHERE worksheet_id = $1 ORDER BY question_order ASC`,
       [input.worksheetId]
@@ -271,7 +315,7 @@ export const submitWorksheet = async (input: { worksheetId: string; answers: Arr
       [input.worksheetId]
     );
 
-    if (attempt.user_id) {
+    if (attempt.user_id && worksheet.awards_credit) {
       await client.query(
         `INSERT INTO user_statistics (user_id, worksheets_completed, problems_solved, correct_answers, accuracy_percentage, last_activity_date, updated_at)
          VALUES ($1, 1, $2, $3, $4, CURRENT_DATE, NOW())
@@ -326,6 +370,7 @@ export const importLocalWorksheets = async (
     if (worksheet.status === "completed") {
       await submitWorksheet({
         worksheetId: created.worksheet.id as string,
+        userId,
         answers: worksheet.answers
       });
     }

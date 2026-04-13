@@ -25,3 +25,12 @@ export const findActiveRefreshToken = async (userId: string, tokenHash: string) 
 export const revokeRefreshToken = async (tokenId: string) => {
   await pool.query(`UPDATE refresh_tokens SET revoked_at = NOW() WHERE id = $1`, [tokenId]);
 };
+
+export const revokeRefreshTokenByHash = async (userId: string, tokenHash: string) => {
+  await pool.query(
+    `UPDATE refresh_tokens
+     SET revoked_at = NOW()
+     WHERE user_id = $1 AND token_hash = $2 AND revoked_at IS NULL`,
+    [userId, tokenHash]
+  );
+};

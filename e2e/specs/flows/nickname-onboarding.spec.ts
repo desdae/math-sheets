@@ -13,8 +13,8 @@ test("first sign-in requires a public nickname before entering the app", async (
     }
   });
 
-  const payload = (await response.json()) as { accessToken: string };
-  await page.goto(`/auth/callback?access_token=${encodeURIComponent(payload.accessToken)}`);
+  expect(response.ok()).toBeTruthy();
+  await page.goto("/auth/callback");
 
   await expect(page).toHaveURL(/\/complete-profile$/);
   await page.getByTestId("nickname-input").fill("Quiet Fox");
@@ -31,8 +31,8 @@ test("signed-in user can update their nickname later from profile", async ({ pag
     }
   });
 
-  const payload = (await response.json()) as { accessToken: string };
-  await page.goto(`/auth/callback?access_token=${encodeURIComponent(payload.accessToken)}`);
+  expect(response.ok()).toBeTruthy();
+  await page.goto("/auth/callback");
 
   await expect(page).toHaveURL(/\/dashboard$/);
   await page.goto("/profile");

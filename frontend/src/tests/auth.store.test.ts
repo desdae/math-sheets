@@ -44,4 +44,24 @@ describe("auth store", () => {
     });
     expect(store.needsNickname).toBe(true);
   });
+
+  it("restores a session from the refresh cookie before fetching the current user", async () => {
+    const store = useAuthStore();
+    apiFetchMock
+      .mockResolvedValueOnce({ accessToken: "fresh-token" })
+      .mockResolvedValueOnce({
+        user: {
+          id: "user-2",
+          email: "fox@example.com",
+          publicNickname: "Quiet Fox"
+        }
+      });
+
+    await store.restoreSessionFromRefreshCookie();
+
+    expect(apiFetchMock.mock.calls[0]?.[0]).toBe("/auth/refresh");
+    expect(apiFetchMock.mock.calls[1]?.[0]).toBe("/auth/me");
+    expect(store.accessToken).toBe("fresh-token");
+    expect(store.user?.publicNickname).toBe("Quiet Fox");
+  });
 });

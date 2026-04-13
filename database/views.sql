@@ -14,6 +14,7 @@ FROM users u
 JOIN worksheets w ON w.user_id = u.id
 JOIN worksheet_attempts a ON a.worksheet_id = w.id
 WHERE w.status = 'completed'
+  AND w.awards_credit = TRUE
   AND w.submitted_at >= date_trunc('day', now() AT TIME ZONE 'UTC')
 GROUP BY u.id, u.public_nickname;
 
@@ -29,6 +30,7 @@ FROM users u
 JOIN worksheets w ON w.user_id = u.id
 JOIN worksheet_attempts a ON a.worksheet_id = w.id
 WHERE w.status = 'completed'
+  AND w.awards_credit = TRUE
   AND w.submitted_at >= date_trunc('week', now() AT TIME ZONE 'UTC')
 GROUP BY u.id, u.public_nickname;
 
@@ -44,5 +46,6 @@ FROM users u
 JOIN worksheets w ON w.user_id = u.id
 JOIN worksheet_attempts a ON a.worksheet_id = w.id
 WHERE w.status = 'completed'
+  AND w.awards_credit = TRUE
   AND w.submitted_at >= date_trunc('month', now() AT TIME ZONE 'UTC')
 GROUP BY u.id, u.public_nickname;

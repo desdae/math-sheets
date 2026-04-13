@@ -83,7 +83,7 @@ mathsheets/
 
 - Anonymous mode is browser-only.
   - Worksheets are stored in `localStorage`.
-  - Nothing anonymous counts toward leaderboards until the user signs in and imports.
+  - Imported anonymous worksheets sync into account history, but they do not count toward leaderboards or competitive aggregate stats.
 - Signed-in mode is backend-owned.
   - The backend generates worksheets, stores question sets, scores submissions, and updates statistics.
 - Authentication uses short-lived access tokens plus a refresh-token cookie.
@@ -301,6 +301,13 @@ Run builds:
 ```bash
 npm run build
 ```
+
+## Security Notes
+
+- Worksheet detail, save, and submit endpoints are scoped to the authenticated owner.
+- Imported local worksheets sync into account history but do not count toward leaderboards or competitive stats.
+- Google OAuth uses a validated `state` value and does not place access tokens in callback URLs.
+- Logout revokes the current refresh token server-side.
 
 ## Notes and future extension points
 

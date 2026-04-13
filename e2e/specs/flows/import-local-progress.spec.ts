@@ -21,8 +21,8 @@ test("signed-in user can import local anonymous worksheets", async ({ page }) =>
     }
   });
 
-  const payload = (await response.json()) as { accessToken: string };
-  await page.goto(`/auth/callback?access_token=${encodeURIComponent(payload.accessToken)}`);
+  expect(response.ok()).toBeTruthy();
+  await page.goto("/auth/callback");
 
   await expect(page).toHaveURL(/\/complete-profile$/);
   await page.getByTestId("nickname-input").fill("Import User");

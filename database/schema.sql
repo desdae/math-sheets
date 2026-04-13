@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS worksheets (
   worksheet_size worksheet_size NOT NULL,
   clean_division_only BOOLEAN NOT NULL DEFAULT TRUE,
   source worksheet_source NOT NULL DEFAULT 'generated',
+  awards_credit BOOLEAN NOT NULL DEFAULT TRUE,
   local_import_key TEXT,
   started_at TIMESTAMPTZ,
   submitted_at TIMESTAMPTZ,
@@ -71,6 +72,13 @@ CREATE TABLE IF NOT EXISTS worksheets (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE NULLS NOT DISTINCT (user_id, local_import_key)
 );
+
+ALTER TABLE worksheets
+ADD COLUMN IF NOT EXISTS awards_credit BOOLEAN NOT NULL DEFAULT TRUE;
+
+UPDATE worksheets
+SET awards_credit = FALSE
+WHERE source = 'imported';
 
 CREATE TABLE IF NOT EXISTS worksheet_questions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

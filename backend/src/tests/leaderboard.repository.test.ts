@@ -42,6 +42,7 @@ describe("getLeaderboard", () => {
     const sql = fs.readFileSync(viewsPath, "utf8");
 
     expect(sql).toContain("u.public_nickname");
+    expect(sql).toContain("w.awards_credit = TRUE");
     expect(sql).not.toContain("u.display_name");
     expect(sql).not.toContain("avatar_url");
   });
