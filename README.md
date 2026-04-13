@@ -322,6 +322,10 @@ npm run build
 - Logout revokes the current refresh token server-side.
 - Auth, worksheet generation/import, profile update, and leaderboard endpoints now apply basic request throttling.
 
+## Launch Preparation
+
+- Review the pre-launch checklist in [docs/pre-launch-checklist.md](docs/pre-launch-checklist.md) before publishing to a real domain.
+
 ## Notes and future extension points
 
 - Teacher and classroom features are intentionally out of scope for v1.
