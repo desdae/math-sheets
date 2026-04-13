@@ -75,7 +75,7 @@
 
       <div class="saved-library-local-list">
         <SavedWorksheetRow
-          v-for="worksheet in localRecords"
+          v-for="worksheet in filteredLocalRecords"
           :key="worksheet.id"
           :worksheet="worksheet"
           :active-filters="activeFilters"
@@ -124,9 +124,10 @@ const localRecords = computed<WorksheetSummaryRecord[]>(() =>
 );
 
 const syncedRecords = computed(() => worksheetStore.remoteWorksheets);
+const filteredLocalRecords = computed(() => filterWorksheetRecords(localRecords.value, activeFilters.value));
 const filteredSyncedRecords = computed(() => filterWorksheetRecords(syncedRecords.value, activeFilters.value));
 const visibleGroups = computed(() => buildWorksheetDateGroups(filteredSyncedRecords.value, new Date()).filter((group) => group.items.length > 0));
-const hasLocalWorksheets = computed(() => localRecords.value.length > 0);
+const hasLocalWorksheets = computed(() => filteredLocalRecords.value.length > 0);
 const canImportLocal = computed(() => Boolean(authStore.user && hasLocalWorksheets.value));
 const showFilteredEmpty = computed(() => syncedRecords.value.length > 0 && filteredSyncedRecords.value.length === 0);
 

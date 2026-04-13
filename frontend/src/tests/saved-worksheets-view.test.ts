@@ -7,6 +7,7 @@ import {
   filterWorksheetRecords,
   type WorksheetSummaryRecord
 } from "../lib/saved-worksheets";
+import SavedWorksheetRow from "../components/worksheet/SavedWorksheetRow.vue";
 import SavedWorksheetsView from "../views/SavedWorksheetsView.vue";
 import { useAuthStore } from "../stores/auth";
 import { useWorksheetStore } from "../stores/worksheet";
@@ -184,9 +185,10 @@ describe("SavedWorksheetsView", () => {
 
   it("shows a filtered empty state and clears filters", async () => {
     const wrapper = createWrapper();
+    const multiplicationChip = wrapper.get('[data-testid="worksheet-chip-multiplication"]');
 
-    await wrapper.get('[data-testid="worksheet-chip-multiplication"]').trigger("click");
-    await wrapper.get('[data-testid="worksheet-chip-addition"]').trigger("click");
+    await multiplicationChip.trigger("click");
+    await wrapper.findComponent(SavedWorksheetRow).vm.$emit("toggle-filter", "addition");
 
     expect(wrapper.text()).toContain("No worksheets match these filters");
 
@@ -195,5 +197,17 @@ describe("SavedWorksheetsView", () => {
     expect(wrapper.text()).toContain("Today");
     expect(wrapper.find('[data-testid="active-filter-multiplication"]').exists()).toBe(false);
     expect(wrapper.find('[data-testid="active-filter-addition"]').exists()).toBe(false);
+  });
+
+  it("applies active filters to local worksheets too", async () => {
+    const wrapper = createWrapper();
+    const hardChip = wrapper.get('[data-testid="worksheet-chip-hard"]');
+    const additionChip = wrapper.get('[data-testid="worksheet-chip-addition"]');
+
+    await hardChip.trigger("click");
+    await additionChip.trigger("click");
+
+    expect(wrapper.text()).not.toContain("Local Builder");
+    expect(wrapper.text()).not.toContain("Unsynced progress");
   });
 });
