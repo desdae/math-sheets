@@ -179,7 +179,8 @@ export const formatWorksheetTimestamp = (isoDate: string, now = new Date()) => {
 };
 
 export const formatElapsedTime = (elapsedSeconds: number) => {
-  const safeSeconds = Math.max(0, Math.floor(elapsedSeconds));
+  const normalizedSeconds = Number.isFinite(elapsedSeconds) ? elapsedSeconds : 0;
+  const safeSeconds = Math.max(0, Math.floor(normalizedSeconds));
   const hours = Math.floor(safeSeconds / 3600);
   const minutes = Math.floor((safeSeconds % 3600) / 60);
   const seconds = safeSeconds % 60;

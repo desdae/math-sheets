@@ -63,6 +63,44 @@ describe("anonymous worksheets", () => {
     expect(worksheetStore.activeWorksheet.answers[0]).toBe("4");
   });
 
+  it("normalizes missing elapsed time from older local worksheets", () => {
+    localStorage.setItem(
+      "mathsheets.anonymous.worksheets",
+      JSON.stringify([
+        {
+          id: "legacy-local-1",
+          title: "Legacy Worksheet",
+          status: "partial",
+          config: {
+            problemCount: 1,
+            difficulty: "easy",
+            allowedOperations: ["+"],
+            numberRangeMin: 1,
+            numberRangeMax: 10,
+            worksheetSize: "small",
+            cleanDivisionOnly: true
+          },
+          questions: [
+            { questionOrder: 1, operation: "+", leftOperand: 2, rightOperand: 2, displayText: "2 + 2 =", correctAnswer: 4 }
+          ],
+          answers: [null],
+          source: "local",
+          localImportKey: "legacy-import-key",
+          createdAt: new Date().toISOString()
+        }
+      ])
+    );
+
+    setActivePinia(createPinia());
+    const worksheetStore = useWorksheetStore();
+
+    worksheetStore.hydrateAnonymousWorksheets();
+    worksheetStore.setActiveWorksheet(worksheetStore.anonymousWorksheets[0]);
+    worksheetStore.tickActiveWorksheetTimer();
+
+    expect(worksheetStore.activeWorksheet?.elapsedSeconds).toBe(1);
+  });
+
   it("preserves local worksheet timestamps when importing to a signed-in account", async () => {
     setActivePinia(createPinia());
     const authStore = useAuthStore();

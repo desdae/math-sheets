@@ -49,6 +49,14 @@ const anonymousStore = createAnonymousWorksheetStore();
 let autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
 
 const randomKey = () => `local-${crypto.randomUUID()}`;
+const normalizeElapsedSeconds = (value: unknown) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? Math.floor(parsed) : 0;
+};
+const normalizeWorksheetRecord = (record: WorksheetRecord): WorksheetRecord => ({
+  ...record,
+  elapsedSeconds: normalizeElapsedSeconds(record.elapsedSeconds)
+});
 const cloneWorksheetRecord = (record: WorksheetRecord): WorksheetRecord => JSON.parse(JSON.stringify(record)) as WorksheetRecord;
 const buildLocalWorksheet = (payload: {
   title: string;
@@ -86,7 +94,7 @@ const buildRemoteWorksheetSummary = (record: WorksheetRecord): WorksheetSummaryR
 
 export const useWorksheetStore = defineStore("worksheet", {
   state: () => ({
-    anonymousWorksheets: anonymousStore.load<WorksheetRecord>(),
+    anonymousWorksheets: anonymousStore.load<WorksheetRecord>().map((record) => normalizeWorksheetRecord(record)),
     remoteWorksheets: [] as WorksheetSummaryRecord[],
     activeWorksheet: null as WorksheetRecord | null,
     showImportModal: false,
@@ -141,7 +149,7 @@ export const useWorksheetStore = defineStore("worksheet", {
       }, 500);
     },
     hydrateAnonymousWorksheets() {
-      this.anonymousWorksheets = anonymousStore.load<WorksheetRecord>();
+      this.anonymousWorksheets = anonymousStore.load<WorksheetRecord>().map((record) => normalizeWorksheetRecord(record));
     },
     async generateWorksheet(config: WorksheetConfig) {
       const authStore = useAuthStore();
@@ -191,7 +199,7 @@ export const useWorksheetStore = defineStore("worksheet", {
         return;
       }
 
-      this.activeWorksheet.elapsedSeconds += 1;
+      this.activeWorksheet.elapsedSeconds = normalizeElapsedSeconds(this.activeWorksheet.elapsedSeconds) + 1;
 
       if (this.activeWorksheet.source === "local" && this.activeWorksheet.elapsedSeconds % 5 === 0) {
         this.saveLocalWorksheet(this.activeWorksheet);
@@ -213,7 +221,7 @@ export const useWorksheetStore = defineStore("worksheet", {
     },
     setActiveWorksheet(record: WorksheetRecord | null) {
       this.clearAutoSaveTimer();
-      this.activeWorksheet = record ? cloneWorksheetRecord(record) : null;
+      this.activeWorksheet = record ? normalizeWorksheetRecord(cloneWorksheetRecord(record)) : null;
       this.saveState = record ? (record.status === "completed" ? "idle" : "saved") : "idle";
       this.lastSavedAt = null;
     },
