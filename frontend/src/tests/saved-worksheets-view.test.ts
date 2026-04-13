@@ -5,6 +5,7 @@ import {
   buildWorksheetChips,
   buildWorksheetDateGroups,
   filterWorksheetRecords,
+  getWorksheetFilterLabel,
   type WorksheetSummaryRecord
 } from "../lib/saved-worksheets";
 import SavedWorksheetRow from "../components/worksheet/SavedWorksheetRow.vue";
@@ -132,6 +133,10 @@ describe("saved-worksheets helpers", () => {
     const filtered = filterWorksheetRecords(records, new Set(["completed", "medium", "addition"]));
     expect(filtered.map((item) => item.id)).toEqual(["today-1"]);
   });
+
+  it("uses the richer worksheet chip label for size filters", () => {
+    expect(getWorksheetFilterLabel("large", records)).toBe("large sheet");
+  });
 });
 
 describe("SavedWorksheetsView", () => {
@@ -161,6 +166,14 @@ describe("SavedWorksheetsView", () => {
     expect(wrapper.get('[data-testid="active-filter-addition"]').exists()).toBe(true);
   });
 
+  it("shows the active filter label for worksheet size chips", async () => {
+    const wrapper = createWrapper();
+
+    await wrapper.get('[data-testid="worksheet-chip-large"]').trigger("click");
+
+    expect(wrapper.text()).toContain("large sheet");
+  });
+
   it("hides the local section entirely when there are no local worksheets", () => {
     const worksheetStore = useWorksheetStore();
     worksheetStore.anonymousWorksheets = [];
@@ -168,6 +181,18 @@ describe("SavedWorksheetsView", () => {
     const wrapper = createWrapper();
 
     expect(wrapper.text()).not.toContain("Local on this device");
+  });
+
+  it("hides the synced section entirely when there are no synced worksheets", () => {
+    const worksheetStore = useWorksheetStore();
+    worksheetStore.remoteWorksheets = [];
+
+    const wrapper = createWrapper();
+
+    expect(wrapper.text()).not.toContain("Synced worksheets");
+    expect(wrapper.text()).not.toContain("Recent history");
+    expect(wrapper.text()).not.toContain("No synced worksheets");
+    expect(wrapper.text()).toContain("Local on this device");
   });
 
   it("shows the import action only when signed in and local worksheets exist", () => {

@@ -95,6 +95,18 @@ export const filterWorksheetRecords = (records: WorksheetSummaryRecord[], active
   });
 };
 
+export const getWorksheetFilterLabel = (value: string, records: WorksheetSummaryRecord[]) => {
+  for (const record of records) {
+    const matchingChip = buildWorksheetChips(record).find((chip) => chip.value === value);
+
+    if (matchingChip) {
+      return matchingChip.label;
+    }
+  }
+
+  return value;
+};
+
 export const buildWorksheetDateGroups = (records: WorksheetSummaryRecord[], now = new Date()): WorksheetGroup[] => {
   const today: WorksheetSummaryRecord[] = [];
   const week: WorksheetSummaryRecord[] = [];

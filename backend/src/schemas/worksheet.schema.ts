@@ -47,7 +47,9 @@ export const importWorksheetsSchema = z.object({
           correctAnswer: z.number()
         })
       ),
-      answers: z.array(z.string().nullable()).default([])
+      answers: z.array(z.string().nullable()).default([]),
+      createdAt: z.string().datetime().optional(),
+      submittedAt: z.string().datetime().nullable().optional()
     })
   )
 });

@@ -41,16 +41,18 @@ export const createWorksheetWithAttempt = async (input: {
   source: "generated" | "imported";
   localImportKey?: string;
   status?: WorksheetStatus;
+  createdAt?: string;
 }) => {
   const client = await pool.connect();
+  const initialTimestamp = input.createdAt ?? new Date().toISOString();
 
   try {
     await client.query("BEGIN");
     const worksheetResult = await client.query(
       `INSERT INTO worksheets (
         user_id, title, status, difficulty, problem_count, allowed_operations,
-        number_range_min, number_range_max, worksheet_size, clean_division_only, source, local_import_key, started_at
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,NOW())
+        number_range_min, number_range_max, worksheet_size, clean_division_only, source, local_import_key, started_at, created_at
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
       RETURNING *`,
       [
         input.userId,
@@ -64,7 +66,9 @@ export const createWorksheetWithAttempt = async (input: {
         input.config.worksheetSize,
         input.config.cleanDivisionOnly,
         input.source,
-        input.localImportKey ?? randomUUID()
+        input.localImportKey ?? randomUUID(),
+        initialTimestamp,
+        initialTimestamp
       ]
     );
 
@@ -302,6 +306,7 @@ export const importLocalWorksheets = async (
     config: WorksheetConfig;
     questions: GeneratedQuestion[];
     answers: Array<string | null>;
+    createdAt?: string;
   }>
 ) => {
   const imported = [];
@@ -314,7 +319,8 @@ export const importLocalWorksheets = async (
       questions: worksheet.questions,
       source: "imported",
       localImportKey: worksheet.localImportKey,
-      status: worksheet.status
+      status: worksheet.status,
+      createdAt: worksheet.createdAt
     });
 
     if (worksheet.status === "completed") {

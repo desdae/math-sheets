@@ -331,7 +331,9 @@ export const useWorksheetStore = defineStore("worksheet", {
             status: worksheet.status,
             config: worksheet.config,
             questions: worksheet.questions,
-            answers: worksheet.answers
+            answers: worksheet.answers,
+            createdAt: worksheet.createdAt,
+            submittedAt: worksheet.submittedAt ?? null
           }))
         })
       });

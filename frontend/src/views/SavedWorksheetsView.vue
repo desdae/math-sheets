@@ -11,11 +11,12 @@
     <SavedWorksheetFilterBar
       v-if="activeFilters.size > 0"
       :active-filters="activeFilters"
+      :filter-labels="activeFilterLabels"
       @remove="toggleFilter"
       @clear="clearFilters"
     />
 
-    <section class="saved-library-section">
+    <section v-if="showSyncedSection" class="saved-library-section">
       <div class="saved-library-section-header">
         <div>
           <p class="eyebrow">Synced worksheets</p>
@@ -94,7 +95,12 @@ import { useRouter } from "vue-router";
 import EmptyState from "../components/common/EmptyState.vue";
 import SavedWorksheetFilterBar from "../components/worksheet/SavedWorksheetFilterBar.vue";
 import SavedWorksheetRow from "../components/worksheet/SavedWorksheetRow.vue";
-import { buildWorksheetDateGroups, filterWorksheetRecords, type WorksheetSummaryRecord } from "../lib/saved-worksheets";
+import {
+  buildWorksheetDateGroups,
+  filterWorksheetRecords,
+  getWorksheetFilterLabel,
+  type WorksheetSummaryRecord
+} from "../lib/saved-worksheets";
 import { useAuthStore } from "../stores/auth";
 import { useWorksheetStore } from "../stores/worksheet";
 
@@ -126,10 +132,17 @@ const localRecords = computed<WorksheetSummaryRecord[]>(() =>
 const syncedRecords = computed(() => worksheetStore.remoteWorksheets);
 const filteredLocalRecords = computed(() => filterWorksheetRecords(localRecords.value, activeFilters.value));
 const filteredSyncedRecords = computed(() => filterWorksheetRecords(syncedRecords.value, activeFilters.value));
+const filterLabelSourceRecords = computed(() => [...syncedRecords.value, ...localRecords.value]);
+const activeFilterLabels = computed(() =>
+  Object.fromEntries(
+    Array.from(activeFilters.value).map((value) => [value, getWorksheetFilterLabel(value, filterLabelSourceRecords.value)])
+  )
+);
 const visibleGroups = computed(() => buildWorksheetDateGroups(filteredSyncedRecords.value, new Date()).filter((group) => group.items.length > 0));
 const hasLocalWorksheets = computed(() => filteredLocalRecords.value.length > 0);
 const canImportLocal = computed(() => Boolean(authStore.user && hasLocalWorksheets.value));
 const showFilteredEmpty = computed(() => syncedRecords.value.length > 0 && filteredSyncedRecords.value.length === 0);
+const showSyncedSection = computed(() => syncedRecords.value.length > 0);
 
 const toggleFilter = (value: string) => {
   const next = new Set(activeFilters.value);

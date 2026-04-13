@@ -89,4 +89,76 @@ describe("createWorksheetWithAttempt", () => {
 
     expect(queryMock.mock.calls[1]?.[1]?.[11]).toBeTruthy();
   });
+
+  it("preserves an imported worksheet createdAt timestamp", async () => {
+    queryMock
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: "worksheet-2",
+            title: "Imported Worksheet",
+            status: "partial",
+            difficulty: "medium",
+            problem_count: 1,
+            allowed_operations: ["+"],
+            number_range_min: 1,
+            number_range_max: 20,
+            worksheet_size: "medium",
+            clean_division_only: true,
+            source: "imported",
+            created_at: "2026-04-10T09:00:00.000Z",
+            submitted_at: null
+          }
+        ]
+      })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: "question-2",
+            question_order: 1,
+            operation: "+",
+            left_operand: 4,
+            right_operand: 5,
+            display_text: "4 + 5 =",
+            correct_answer: 9
+          }
+        ]
+      })
+      .mockResolvedValueOnce({
+        rows: [{ id: "attempt-2" }]
+      })
+      .mockResolvedValueOnce(undefined);
+
+    const { createWorksheetWithAttempt } = await import("../repositories/worksheet.repository.js");
+    const importedCreatedAt = "2026-04-10T09:00:00.000Z";
+
+    await createWorksheetWithAttempt({
+      userId: "user-1",
+      title: "Imported Worksheet",
+      config: {
+        problemCount: 1,
+        difficulty: "medium",
+        allowedOperations: ["+"],
+        numberRangeMin: 1,
+        numberRangeMax: 20,
+        worksheetSize: "medium",
+        cleanDivisionOnly: true
+      },
+      questions: [
+        {
+          questionOrder: 1,
+          operation: "+",
+          leftOperand: 4,
+          rightOperand: 5,
+          displayText: "4 + 5 =",
+          correctAnswer: 9
+        }
+      ],
+      source: "imported",
+      createdAt: importedCreatedAt
+    });
+
+    expect(queryMock.mock.calls[1]?.[1]?.[12]).toBe(importedCreatedAt);
+  });
 });

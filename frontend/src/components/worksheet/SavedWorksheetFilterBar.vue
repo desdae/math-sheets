@@ -8,7 +8,7 @@
         class="worksheet-filter-chip worksheet-filter-chip-active"
         @click="$emit('remove', value)"
       >
-        {{ value }}
+        {{ filterLabels[value] ?? value }}
       </button>
     </div>
     <button data-testid="clear-all-filters" class="button-secondary saved-library-clear" @click="$emit('clear')">
@@ -22,6 +22,7 @@ import { computed } from "vue";
 
 const props = defineProps<{
   activeFilters: Set<string>;
+  filterLabels: Record<string, string>;
 }>();
 
 defineEmits<{
