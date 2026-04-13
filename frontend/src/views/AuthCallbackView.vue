@@ -26,6 +26,11 @@ onMounted(async () => {
   }
 
   await authStore.fetchMe();
+  if (authStore.needsNickname) {
+    router.replace("/complete-profile");
+    return;
+  }
+
   await worksheetStore.fetchRemoteWorksheets();
   await worksheetStore.maybePromptForImport();
   router.replace("/dashboard");

@@ -13,7 +13,7 @@
       <tbody>
         <tr v-for="(row, index) in rows" :key="row.user_id">
           <td>{{ index + 1 }}</td>
-          <td>{{ row.display_name }}</td>
+          <td>{{ row.public_nickname }}</td>
           <td>{{ row.worksheets_completed }}</td>
           <td>{{ row.problems_solved }}</td>
           <td>{{ row.accuracy_percentage }}%</td>
@@ -27,7 +27,7 @@
 defineProps<{
   rows: Array<{
     user_id: string;
-    display_name: string;
+    public_nickname: string;
     worksheets_completed: number;
     problems_solved: number;
     accuracy_percentage: number;

@@ -4,6 +4,7 @@ export const routes: RouteRecordRaw[] = [
   { path: "/", component: () => import("../views/LandingView.vue") },
   { path: "/login", component: () => import("../views/LoginView.vue") },
   { path: "/auth/callback", component: () => import("../views/AuthCallbackView.vue") },
+  { path: "/complete-profile", component: () => import("../views/CompleteProfileView.vue") },
   { path: "/dashboard", component: () => import("../views/DashboardView.vue") },
   { path: "/generate", component: () => import("../views/GeneratorView.vue") },
   { path: "/worksheets", component: () => import("../views/SavedWorksheetsView.vue") },

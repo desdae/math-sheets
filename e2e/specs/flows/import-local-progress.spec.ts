@@ -17,14 +17,16 @@ test("signed-in user can import local anonymous worksheets", async ({ page }) =>
 
   const response = await page.context().request.post("http://127.0.0.1:3001/api/test-auth/login", {
     data: {
-      email: "importer@example.com",
-      displayName: "Import User"
+      email: "importer@example.com"
     }
   });
 
   const payload = (await response.json()) as { accessToken: string };
   await page.goto(`/auth/callback?access_token=${encodeURIComponent(payload.accessToken)}`);
 
+  await expect(page).toHaveURL(/\/complete-profile$/);
+  await page.getByTestId("nickname-input").fill("Import User");
+  await page.getByTestId("nickname-submit").click();
   await expect(page.getByTestId("import-local-modal")).toBeVisible();
   await page.getByTestId("import-local-confirm").click();
   await expect(page.getByTestId("import-local-modal")).toBeHidden();

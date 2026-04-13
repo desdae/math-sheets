@@ -4,6 +4,8 @@ MathSheets is a full-stack worksheet generator inspired by MathSheets. It lets u
 
 Worksheets auto-save while in progress, highlight unanswered problems before submission, reveal correctness only after submission, and lock once completed.
 
+Google is used only for authentication. The app keeps Google account details private on the backend and exposes only a user-chosen public nickname to the frontend and leaderboard surfaces.
+
 ## Tech stack
 
 - Frontend: Vue 3, Vite, Pinia, Vue Router, Vitest

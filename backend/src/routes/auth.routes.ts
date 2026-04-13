@@ -58,8 +58,7 @@ authRouter.get(
       user: {
         id: user.id,
         email: user.email,
-        displayName: user.display_name,
-        avatarUrl: user.avatar_url
+        publicNickname: user.public_nickname
       }
     });
   })

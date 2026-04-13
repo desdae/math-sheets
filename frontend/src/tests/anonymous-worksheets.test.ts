@@ -69,9 +69,8 @@ describe("anonymous worksheets", () => {
 
     authStore.user = {
       id: "user-1",
-      displayName: "Test User",
       email: "test@example.com",
-      avatarUrl: null
+      publicNickname: "Test User"
     };
 
     worksheetStore.anonymousWorksheets = [

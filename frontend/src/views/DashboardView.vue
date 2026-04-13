@@ -3,7 +3,7 @@
     <div class="page-heading">
       <div>
         <p class="eyebrow">Dashboard</p>
-        <h1>{{ authStore.user ? `Welcome back, ${authStore.user.displayName}` : "Anonymous practice mode" }}</h1>
+        <h1>{{ authStore.user ? `Welcome back, ${authStore.user.publicNickname}` : "Anonymous practice mode" }}</h1>
       </div>
       <RouterLink class="button" to="/generate">New worksheet</RouterLink>
     </div>
