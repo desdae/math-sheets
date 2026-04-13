@@ -1,3 +1,6 @@
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const queryMock = vi.fn();
@@ -31,5 +34,15 @@ describe("getLeaderboard", () => {
 
     expect(String(queryMock.mock.calls[0]?.[0])).toContain("public_nickname ASC");
     expect(rows[0].public_nickname).toBe("Quiet Fox");
+  });
+
+  it("defines leaderboard SQL views with public nicknames only", () => {
+    const currentDir = path.dirname(fileURLToPath(import.meta.url));
+    const viewsPath = path.resolve(currentDir, "../../../database/views.sql");
+    const sql = fs.readFileSync(viewsPath, "utf8");
+
+    expect(sql).toContain("u.public_nickname");
+    expect(sql).not.toContain("u.display_name");
+    expect(sql).not.toContain("avatar_url");
   });
 });
