@@ -16,6 +16,12 @@
       @clear="clearFilters"
     />
 
+    <SavedWorksheetQuickFilters
+      :filters="quickFilters"
+      :active-filters="activeFilters"
+      @toggle="toggleFilter"
+    />
+
     <section v-if="showSyncedSection" class="saved-library-section">
       <div class="saved-library-section-header">
         <div>
@@ -94,6 +100,7 @@ import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import EmptyState from "../components/common/EmptyState.vue";
 import SavedWorksheetFilterBar from "../components/worksheet/SavedWorksheetFilterBar.vue";
+import SavedWorksheetQuickFilters from "../components/worksheet/SavedWorksheetQuickFilters.vue";
 import SavedWorksheetRow from "../components/worksheet/SavedWorksheetRow.vue";
 import {
   buildWorksheetDateGroups,
@@ -109,6 +116,14 @@ const router = useRouter();
 const worksheetStore = useWorksheetStore();
 
 const activeFilters = ref<Set<string>>(new Set());
+const quickFilters = [
+  { value: "partial", label: "In progress" },
+  { value: "completed", label: "Completed" },
+  { value: "date:today", label: "Today" },
+  { value: "date:this-week", label: "This week" },
+  { value: "addition", label: "Addition" },
+  { value: "multiplication", label: "Multiplication" }
+];
 
 const localRecords = computed<WorksheetSummaryRecord[]>(() =>
   worksheetStore.anonymousWorksheets.map((worksheet) => ({

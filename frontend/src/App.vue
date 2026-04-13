@@ -18,7 +18,6 @@ onMounted(async () => {
   if (authStore.accessToken) {
     await authStore.fetchMe();
     await worksheetStore.fetchRemoteWorksheets();
-    await worksheetStore.maybePromptForImport();
   }
 });
 </script>

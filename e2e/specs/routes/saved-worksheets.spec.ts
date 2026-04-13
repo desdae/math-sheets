@@ -108,6 +108,7 @@ test("groups synced worksheets by date and filters by metadata chips", async ({ 
   await page.goto("/worksheets");
 
   await expect(page.getByTestId("saved-worksheets-page")).toBeVisible();
+  await expect(page.getByTestId("quick-filter-completed")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Today" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "This week" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Earlier" })).toBeVisible();
@@ -129,7 +130,7 @@ test("keeps chip clicks from navigating and row clicks still open the worksheet"
   await page.getByTestId("worksheet-chip-medium").first().click();
   await expect(page).toHaveURL(/\/worksheets$/);
 
-  await page.getByTestId("saved-remote-worksheet-link").first().click();
+  await page.getByTestId("saved-remote-worksheet-link").first().locator("strong").click();
   await expect(page).toHaveURL(/\/worksheets\/.+/);
   await expect(page.getByTestId("worksheet-page")).toBeVisible();
 });

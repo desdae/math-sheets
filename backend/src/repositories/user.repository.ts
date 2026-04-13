@@ -1,4 +1,4 @@
-import type { DatabaseError } from "pg";
+import type { DatabaseError } from "pg-protocol";
 import { pool } from "../db/pool.js";
 import { HttpError } from "../lib/http-error.js";
 import type { GoogleProfile } from "../types/auth.js";

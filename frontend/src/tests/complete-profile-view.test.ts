@@ -55,8 +55,65 @@ describe("CompleteProfileView", () => {
     await flushPromises();
 
     expect(fetchRemoteSpy).toHaveBeenCalled();
-    expect(promptImportSpy).toHaveBeenCalled();
     expect(push).toHaveBeenCalledWith("/dashboard");
+    expect(promptImportSpy).not.toHaveBeenCalled();
+  });
+
+  it("moves into the inline import step after saving a nickname when local worksheets exist", async () => {
+    const authStore = useAuthStore();
+    const worksheetStore = useWorksheetStore();
+    authStore.user = {
+      id: "user-1",
+      email: "kid@example.com",
+      publicNickname: null
+    };
+    worksheetStore.anonymousWorksheets = [
+      {
+        id: "local-1",
+        title: "Local Practice",
+        status: "partial",
+        config: {
+          problemCount: 12,
+          difficulty: "easy",
+          allowedOperations: ["+"],
+          numberRangeMin: 1,
+          numberRangeMax: 10,
+          worksheetSize: "small",
+          cleanDivisionOnly: true
+        },
+        questions: [
+          {
+            questionOrder: 1,
+            operation: "+",
+            leftOperand: 2,
+            rightOperand: 3,
+            displayText: "2 + 3 =",
+            correctAnswer: 5
+          }
+        ],
+        answers: [""],
+        source: "local",
+        localImportKey: "local-import-1",
+        createdAt: "2026-04-13T09:00:00.000Z"
+      }
+    ];
+
+    vi.spyOn(worksheetStore, "fetchRemoteWorksheets").mockResolvedValue();
+    apiFetchMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+        email: "kid@example.com",
+        publicNickname: "Quiet Fox"
+      }
+    });
+
+    const wrapper = mount(CompleteProfileView);
+    await wrapper.get('[data-testid="nickname-input"]').setValue("Quiet Fox");
+    await wrapper.get('[data-testid="nickname-submit"]').trigger("click");
+    await flushPromises();
+
+    expect(wrapper.text()).toContain("Import saved progress?");
+    expect(push).not.toHaveBeenCalledWith("/dashboard");
   });
 
   it("updates the signed-in user's nickname from profile", async () => {

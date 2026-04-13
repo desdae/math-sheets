@@ -1,6 +1,10 @@
 <template>
   <div class="card">
-    <table class="leaderboard-table">
+    <p v-if="!isLoading && rows.length === 0" class="lede">
+      Complete a worksheet in the selected period to start appearing in the leaderboard.
+    </p>
+
+    <table v-else class="leaderboard-table">
       <thead>
         <tr>
           <th>#</th>
@@ -11,7 +15,11 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(row, index) in rows" :key="row.user_id">
+        <tr
+          v-for="(row, index) in rows"
+          :key="row.user_id"
+          :class="{ 'leaderboard-row-current': row.public_nickname === currentUserNickname }"
+        >
           <td>{{ index + 1 }}</td>
           <td>{{ row.public_nickname }}</td>
           <td>{{ row.worksheets_completed }}</td>
@@ -32,5 +40,7 @@ defineProps<{
     problems_solved: number;
     accuracy_percentage: number;
   }>;
+  currentUserNickname?: string | null;
+  isLoading?: boolean;
 }>();
 </script>

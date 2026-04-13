@@ -39,6 +39,12 @@ const operationLabels = {
   "/": "division"
 } as const;
 
+const dateFilterLabels = {
+  "date:today": "Today",
+  "date:this-week": "This week",
+  "date:earlier": "Earlier"
+} as const;
+
 const startOfDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
 const dayDifference = (left: Date, right: Date) => {
@@ -91,11 +97,32 @@ export const filterWorksheetRecords = (records: WorksheetSummaryRecord[], active
 
   return records.filter((record) => {
     const values = new Set(buildWorksheetChips(record).map((chip) => chip.value));
-    return Array.from(activeFilters).every((value) => values.has(value));
+    const createdAt = new Date(record.createdAt);
+
+    return Array.from(activeFilters).every((value) => {
+      if (value === "date:today") {
+        return dayDifference(new Date(), createdAt) <= 0;
+      }
+
+      if (value === "date:this-week") {
+        const ageInDays = dayDifference(new Date(), createdAt);
+        return ageInDays >= 0 && ageInDays <= 6;
+      }
+
+      if (value === "date:earlier") {
+        return dayDifference(new Date(), createdAt) > 6;
+      }
+
+      return values.has(value);
+    });
   });
 };
 
 export const getWorksheetFilterLabel = (value: string, records: WorksheetSummaryRecord[]) => {
+  if (value in dateFilterLabels) {
+    return dateFilterLabels[value as keyof typeof dateFilterLabels];
+  }
+
   for (const record of records) {
     const matchingChip = buildWorksheetChips(record).find((chip) => chip.value === value);
 

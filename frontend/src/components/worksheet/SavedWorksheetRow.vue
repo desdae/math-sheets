@@ -37,6 +37,12 @@
         {{ chip.label }}
       </button>
     </div>
+
+    <div class="saved-worksheet-row-actions">
+      <button class="button-secondary saved-worksheet-row-action" @click.stop="$emit('open', worksheet.id)">
+        {{ worksheet.status === "completed" ? "Review results" : "Resume" }}
+      </button>
+    </div>
   </article>
 </template>
 

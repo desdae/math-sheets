@@ -6,6 +6,10 @@
         <h1>{{ worksheet.title }}</h1>
       </div>
       <p class="lede">{{ worksheet.questions.length }} problems · {{ difficultyLabel }}</p>
+      <p class="worksheet-progress-summary">{{ answeredCount }} of {{ worksheet.questions.length }} answered</p>
+      <div class="worksheet-progress-bar" aria-hidden="true">
+        <span :style="{ width: `${progressPercent}%` }" />
+      </div>
       <p data-testid="worksheet-save-status" class="worksheet-save-status">
         {{ saveStatusLabel }}
       </p>
@@ -53,6 +57,7 @@
           Submit worksheet
         </button>
       </div>
+      <WorksheetCompletionActions v-else />
     </section>
 
     <div v-if="resultSummary" class="card worksheet-result-card">
@@ -67,6 +72,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
+import WorksheetCompletionActions from "../components/worksheet/WorksheetCompletionActions.vue";
 import WorksheetGrid from "../components/worksheet/WorksheetGrid.vue";
 import { useAuthStore } from "../stores/auth";
 import { useWorksheetStore } from "../stores/worksheet";
@@ -85,7 +91,15 @@ const difficultyLabel = computed(() => {
 
   return `${worksheet.value.config.difficulty.charAt(0).toUpperCase()}${worksheet.value.config.difficulty.slice(1)} difficulty`;
 });
+const answeredCount = computed(() => worksheet.value?.answers.filter((answer) => String(answer ?? "").trim()).length ?? 0);
 const unansweredCount = computed(() => worksheet.value?.answers.filter((answer) => !String(answer ?? "").trim()).length ?? 0);
+const progressPercent = computed(() => {
+  if (!worksheet.value || worksheet.value.questions.length === 0) {
+    return 0;
+  }
+
+  return Math.round((answeredCount.value / worksheet.value.questions.length) * 100);
+});
 const saveStatusLabel = computed(() => {
   if (isCompleted.value) {
     return "Completed and locked";

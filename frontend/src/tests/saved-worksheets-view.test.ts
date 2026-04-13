@@ -143,9 +143,20 @@ describe("SavedWorksheetsView", () => {
   it("shows synced worksheets grouped into today, this week, and earlier", () => {
     const wrapper = createWrapper();
 
+    expect(wrapper.text()).toContain("In progress");
+    expect(wrapper.text()).toContain("Completed");
     expect(wrapper.text()).toContain("Today");
     expect(wrapper.text()).toContain("This week");
     expect(wrapper.text()).toContain("Earlier");
+  });
+
+  it("supports quick date filters before any chip interaction", async () => {
+    const wrapper = createWrapper();
+
+    await wrapper.get('[data-testid="quick-filter-date:this-week"]').trigger("click");
+
+    expect(wrapper.text()).toContain("Subtraction Builder");
+    expect(wrapper.text()).not.toContain("Hard Tables");
   });
 
   it("renders worksheet metadata chips and score badges for completed rows", () => {

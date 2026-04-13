@@ -32,6 +32,14 @@ Google is used only for authentication. The app keeps Google account details pri
 - Print-friendly worksheet layout
 - One-time local-to-account import confirmation after sign-in
 
+## UX flow highlights
+
+- Google sign-in now continues through a guided nickname and local-import onboarding flow instead of dropping users into separate modal interruptions.
+- The dashboard centers the next recommended action first, then shows recent activity and secondary context.
+- Worksheets show live answering progress, preserve auto-save feedback, and offer clearer post-submit next actions.
+- Saved worksheets expose visible quick filters before row-chip interaction.
+- Leaderboards call out the signed-in user's standing and make not-ranked states easier to understand.
+
 ## Project structure
 
 ```text

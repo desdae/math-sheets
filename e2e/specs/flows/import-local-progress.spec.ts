@@ -27,9 +27,9 @@ test("signed-in user can import local anonymous worksheets", async ({ page }) =>
   await expect(page).toHaveURL(/\/complete-profile$/);
   await page.getByTestId("nickname-input").fill("Import User");
   await page.getByTestId("nickname-submit").click();
-  await expect(page.getByTestId("import-local-modal")).toBeVisible();
+  await expect(page.getByText("Import saved progress?")).toBeVisible();
   await page.getByTestId("import-local-confirm").click();
-  await expect(page.getByTestId("import-local-modal")).toBeHidden();
+  await expect(page).toHaveURL(/\/dashboard$/);
 
   await page.goto("/worksheets");
   await expect(page.getByTestId("saved-worksheets-page")).toBeVisible();

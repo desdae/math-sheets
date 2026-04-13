@@ -7,6 +7,13 @@
       </div>
     </div>
 
+    <LeaderboardSummaryCard
+      :rank="currentUserRank"
+      :metric="leaderboardStore.metric"
+      :is-ranked="currentUserRank > 0"
+      :requires-threshold="leaderboardStore.metric === 'accuracy'"
+    />
+
     <div class="card toolbar">
       <label>
         Period
@@ -27,16 +34,27 @@
       </label>
     </div>
 
-    <LeaderboardTable :rows="leaderboardStore.rows" />
+    <LeaderboardTable
+      :rows="leaderboardStore.rows"
+      :current-user-nickname="authStore.user?.publicNickname ?? null"
+      :is-loading="leaderboardStore.isLoading"
+    />
   </section>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { computed, onMounted } from "vue";
+import LeaderboardSummaryCard from "../components/leaderboard/LeaderboardSummaryCard.vue";
 import LeaderboardTable from "../components/leaderboard/LeaderboardTable.vue";
+import { findCurrentUserRank } from "../lib/leaderboard";
+import { useAuthStore } from "../stores/auth";
 import { useLeaderboardStore } from "../stores/leaderboard";
 
+const authStore = useAuthStore();
 const leaderboardStore = useLeaderboardStore();
+const currentUserRank = computed(() =>
+  findCurrentUserRank(leaderboardStore.rows, authStore.user?.publicNickname)
+);
 
 onMounted(() => {
   leaderboardStore.fetchLeaderboard();

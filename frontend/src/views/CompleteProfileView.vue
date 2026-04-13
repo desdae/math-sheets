@@ -1,24 +1,54 @@
 <template>
   <section class="page-stack" data-testid="complete-profile-page">
-    <div class="card" style="max-width: 540px; margin: 0 auto;">
-      <p class="eyebrow">Finish setup</p>
-      <h1>Choose your public nickname</h1>
-      <p class="lede">Google account details stay private. This nickname is what the app will show publicly.</p>
-      <label>
-        Public nickname
-        <input data-testid="nickname-input" v-model.trim="publicNickname" type="text" maxlength="24" />
-      </label>
-      <p v-if="errorMessage" class="form-error">{{ errorMessage }}</p>
-      <button data-testid="nickname-submit" class="button" :disabled="isSaving" @click="saveNickname">
-        {{ isSaving ? "Saving..." : "Save and continue" }}
-      </button>
-    </div>
+    <AuthOnboardingFlow :step="currentStep" :has-local-worksheets="worksheetStore.hasImportableAnonymousWorksheets">
+      <template v-if="currentStep === 'nickname'">
+        <div class="page-stack onboarding-panel">
+          <label>
+            Public nickname
+            <input data-testid="nickname-input" v-model.trim="publicNickname" type="text" maxlength="24" />
+          </label>
+          <p v-if="errorMessage" class="form-error">{{ errorMessage }}</p>
+          <button data-testid="nickname-submit" class="button" :disabled="isSaving" @click="saveNickname">
+            {{ isSaving ? "Saving..." : "Save and continue" }}
+          </button>
+        </div>
+      </template>
+
+      <template v-else-if="currentStep === 'import'">
+        <div class="page-stack onboarding-panel">
+          <div class="card onboarding-choice-card">
+            <h3>Import saved progress?</h3>
+            <p class="lede">
+              You have {{ worksheetStore.anonymousWorksheets.length }} worksheet{{
+                worksheetStore.anonymousWorksheets.length === 1 ? "" : "s"
+              }} stored in this browser.
+            </p>
+            <div class="modal-actions">
+              <button data-testid="import-local-decline" class="button button-secondary" @click="skipImport">
+                Keep local only
+              </button>
+              <button data-testid="import-local-confirm" class="button" @click="importWorksheets">
+                Import progress
+              </button>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <template v-else>
+        <div class="page-stack onboarding-panel">
+          <p class="lede">Everything is ready. Head to your dashboard to keep practicing.</p>
+          <button class="button" @click="router.push('/dashboard')">Open dashboard</button>
+        </div>
+      </template>
+    </AuthOnboardingFlow>
   </section>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
+import AuthOnboardingFlow from "../components/onboarding/AuthOnboardingFlow.vue";
 import { useAuthStore } from "../stores/auth";
 import { useWorksheetStore } from "../stores/worksheet";
 
@@ -29,6 +59,18 @@ const worksheetStore = useWorksheetStore();
 const publicNickname = ref("");
 const errorMessage = ref("");
 const isSaving = ref(false);
+
+const currentStep = computed<"nickname" | "import" | "done">(() => {
+  if (authStore.needsNickname) {
+    return "nickname";
+  }
+
+  if (worksheetStore.hasImportableAnonymousWorksheets) {
+    return "import";
+  }
+
+  return "done";
+});
 
 const saveNickname = async () => {
   if (!publicNickname.value) {
@@ -42,12 +84,24 @@ const saveNickname = async () => {
   try {
     await authStore.savePublicNickname(publicNickname.value);
     await worksheetStore.fetchRemoteWorksheets();
-    await worksheetStore.maybePromptForImport();
-    await router.push("/dashboard");
+
+    if (!worksheetStore.hasImportableAnonymousWorksheets) {
+      await router.push("/dashboard");
+    }
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : "Unable to save nickname right now.";
   } finally {
     isSaving.value = false;
   }
+};
+
+const importWorksheets = async () => {
+  await worksheetStore.importAnonymousWorksheets();
+  await router.push("/dashboard");
+};
+
+const skipImport = async () => {
+  worksheetStore.rememberImportDecision("declined");
+  await router.push("/dashboard");
 };
 </script>

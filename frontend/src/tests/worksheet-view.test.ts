@@ -6,6 +6,11 @@ import WorksheetView from "../views/WorksheetView.vue";
 import { useWorksheetStore } from "../stores/worksheet";
 
 vi.mock("vue-router", () => ({
+  RouterLink: {
+    name: "RouterLink",
+    props: ["to"],
+    template: '<a :href="to"><slot /></a>'
+  },
   useRoute: () => ({
     params: {
       id: "local-worksheet-1"
@@ -51,6 +56,7 @@ describe("WorksheetView", () => {
     const wrapper = mount(WorksheetView);
 
     expect(wrapper.text()).toContain("2 unanswered");
+    expect(wrapper.text()).toContain("2 of 4 answered");
     expect(wrapper.find('[data-testid="answer-state-2"]').attributes("data-answer-state")).toBe("empty");
     expect(wrapper.find('[data-testid="answer-state-3"]').attributes("data-answer-state")).toBe("filled");
   });
@@ -88,6 +94,8 @@ describe("WorksheetView", () => {
     expect(wrapper.find('[data-testid="answer-state-1"]').attributes("data-answer-state")).toBe("correct");
     expect(wrapper.find('[data-testid="answer-state-3"]').attributes("data-answer-state")).toBe("wrong");
     expect(wrapper.find('[data-testid="answer-input-1"]').attributes("disabled")).toBeDefined();
+    expect(wrapper.text()).toContain("Generate another");
+    expect(wrapper.text()).toContain("Back to library");
   });
 
   it("applies the configured worksheet size to the grid layout", async () => {

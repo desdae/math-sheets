@@ -91,6 +91,9 @@ export const useWorksheetStore = defineStore("worksheet", {
     saveState: "idle" as WorksheetSaveState,
     lastSavedAt: null as string | null
   }),
+  getters: {
+    hasImportableAnonymousWorksheets: (state) => state.anonymousWorksheets.length > 0
+  },
   actions: {
     syncAnonymousStorage() {
       anonymousStore.save(this.anonymousWorksheets);
@@ -309,7 +312,7 @@ export const useWorksheetStore = defineStore("worksheet", {
       const authStore = useAuthStore();
       const previousDecision = localStorage.getItem(anonymousImportDecisionKey);
 
-      this.showImportModal = Boolean(authStore.user && this.anonymousWorksheets.length > 0 && !previousDecision);
+      this.showImportModal = Boolean(authStore.user && this.hasImportableAnonymousWorksheets && !previousDecision);
     },
     rememberImportDecision(decision: "confirmed" | "declined") {
       localStorage.setItem(anonymousImportDecisionKey, decision);

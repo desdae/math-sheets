@@ -9,19 +9,32 @@
       <button v-if="authStore.user" class="button button-secondary" @click="authStore.logout()">Log out</button>
     </div>
 
-    <div v-if="authStore.user" class="card page-stack">
-      <div>
-        <h2>Public nickname</h2>
-        <p class="lede">This is the name the app shows on leaderboards and other user-facing screens.</p>
-      </div>
-      <label>
-        Nickname
-        <input data-testid="profile-nickname-input" v-model.trim="nicknameDraft" type="text" maxlength="24" />
-      </label>
-      <p v-if="saveMessage">{{ saveMessage }}</p>
-      <button data-testid="profile-nickname-save" class="button" :disabled="isSavingNickname" @click="saveNickname">
-        {{ isSavingNickname ? "Saving..." : "Save nickname" }}
-      </button>
+    <div v-if="authStore.user" class="profile-layout">
+      <section class="card page-stack">
+        <div>
+          <p class="eyebrow">Public identity</p>
+          <h2>Choose what the app shows publicly</h2>
+          <p class="lede">This nickname appears on leaderboards and other learner-facing parts of MathSheets.</p>
+        </div>
+        <label>
+          Nickname
+          <input data-testid="profile-nickname-input" v-model.trim="nicknameDraft" type="text" maxlength="24" />
+        </label>
+        <p v-if="saveMessage">{{ saveMessage }}</p>
+        <button data-testid="profile-nickname-save" class="button" :disabled="isSavingNickname" @click="saveNickname">
+          {{ isSavingNickname ? "Saving..." : "Save nickname" }}
+        </button>
+      </section>
+
+      <section class="card page-stack">
+        <div>
+          <p class="eyebrow">Private account</p>
+          <h2>Google account details stay private</h2>
+          <p class="lede">Your Google profile is used only for account access. Public screens use your nickname instead.</p>
+        </div>
+        <p>{{ authStore.user.email }}</p>
+        <PublicIdentityPreview :nickname="nicknameDraft || authStore.user.publicNickname || ''" />
+      </section>
     </div>
 
     <div v-if="authStore.user && stats" class="stat-grid">
@@ -41,6 +54,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 import StatCard from "../components/common/StatCard.vue";
+import PublicIdentityPreview from "../components/profile/PublicIdentityPreview.vue";
 import { apiFetch } from "../lib/api";
 import { formatDate } from "../lib/format";
 import { useAuthStore } from "../stores/auth";
