@@ -8,7 +8,7 @@ import { issueSessionTokens, refreshCookieName } from "../services/token.service
 
 const loginSchema = z.object({
   email: z.string().email().default("e2e@example.com"),
-  displayName: z.string().min(1).default("E2E User")
+  publicNickname: z.string().trim().min(1).nullable().optional()
 });
 
 const isE2EAuthEnabled = () => process.env.ENABLE_E2E_AUTH === "true" || env.ENABLE_E2E_AUTH;
@@ -42,7 +42,7 @@ testAuthRouter.post(
       user: {
         id: user.id,
         email: user.email,
-        displayName: user.display_name
+        publicNickname: user.public_nickname ?? null
       }
     });
   })

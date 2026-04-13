@@ -7,9 +7,9 @@ const periodViewMap = {
 } as const;
 
 const metricOrderMap = {
-  worksheets: "worksheets_completed DESC, problems_solved DESC, display_name ASC",
-  problems: "problems_solved DESC, worksheets_completed DESC, display_name ASC",
-  accuracy: "accuracy_percentage DESC, problems_solved DESC, display_name ASC"
+  worksheets: "worksheets_completed DESC, problems_solved DESC, public_nickname ASC",
+  problems: "problems_solved DESC, worksheets_completed DESC, public_nickname ASC",
+  accuracy: "accuracy_percentage DESC, problems_solved DESC, public_nickname ASC"
 } as const;
 
 export const getLeaderboard = async ({

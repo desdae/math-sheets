@@ -6,8 +6,7 @@ type LeaderboardPeriod = "daily" | "weekly" | "monthly";
 
 type LeaderboardRow = {
   user_id: string;
-  display_name: string;
-  avatar_url: string;
+  public_nickname: string;
   worksheets_completed: number;
   problems_solved: number;
   correct_answers: number;

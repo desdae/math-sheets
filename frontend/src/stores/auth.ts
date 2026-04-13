@@ -4,8 +4,7 @@ import { apiFetch, authTokenStorageKey, setStoredToken } from "../lib/api";
 type User = {
   id: string;
   email: string;
-  displayName: string;
-  avatarUrl?: string | null;
+  publicNickname: string | null;
 };
 
 export const useAuthStore = defineStore("auth", {
@@ -15,6 +14,9 @@ export const useAuthStore = defineStore("auth", {
     hasCheckedAuth: false,
     isLoading: false
   }),
+  getters: {
+    needsNickname: (state) => Boolean(state.user && !state.user.publicNickname)
+  },
   actions: {
     setAccessToken(token: string | null) {
       this.accessToken = token ?? "";
@@ -35,6 +37,15 @@ export const useAuthStore = defineStore("auth", {
     },
     startGoogleSignIn() {
       window.location.href = `${import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000/api"}/auth/google`;
+    },
+    async savePublicNickname(publicNickname: string) {
+      const payload = await apiFetch<{ user: User }>("/users/me/profile", {
+        method: "PATCH",
+        body: JSON.stringify({ publicNickname })
+      });
+
+      this.user = payload.user;
+      return payload.user;
     },
     async refreshAccessToken() {
       const payload = await apiFetch<{ accessToken: string }>("/auth/refresh", {

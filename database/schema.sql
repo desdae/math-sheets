@@ -24,11 +24,23 @@ CREATE TABLE IF NOT EXISTS users (
   google_sub TEXT UNIQUE NOT NULL,
   email TEXT UNIQUE NOT NULL,
   display_name TEXT NOT NULL,
+  public_nickname TEXT,
   avatar_url TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   last_login_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE users
+ADD COLUMN IF NOT EXISTS public_nickname TEXT;
+
+UPDATE users
+SET public_nickname = display_name
+WHERE public_nickname IS NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_public_nickname_lower
+ON users (LOWER(public_nickname))
+WHERE public_nickname IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS refresh_tokens (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

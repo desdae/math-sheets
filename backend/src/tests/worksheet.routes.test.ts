@@ -83,11 +83,12 @@ describe("test auth routes", () => {
 
     const response = await request(createApp()).post("/api/test-auth/login").send({
       email: "e2e@example.com",
-      displayName: "E2E User"
+      publicNickname: "E2E User"
     });
 
     expect(response.status).toBe(200);
     expect(response.body.user.email).toBe("e2e@example.com");
+    expect(response.body.user.publicNickname).toBe("E2E User");
     expect(response.body.accessToken).toBeTruthy();
   });
 });
