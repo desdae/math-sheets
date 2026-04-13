@@ -3,6 +3,7 @@ import cors from "cors";
 import express from "express";
 import { env } from "./config/env.js";
 import { errorHandler } from "./middleware/error-handler.js";
+import { createRateLimiter } from "./middleware/rate-limit.js";
 import { authRouter } from "./routes/auth.routes.js";
 import { healthRouter } from "./routes/health.routes.js";
 import { leaderboardRouter } from "./routes/leaderboard.routes.js";
@@ -12,6 +13,31 @@ import { worksheetRouter } from "./routes/worksheet.routes.js";
 
 export const createApp = () => {
   const app = express();
+  const authRateLimit = createRateLimiter({
+    windowMs: 60_000,
+    max: env.NODE_ENV === "test" ? 2 : 12,
+    keyPrefix: "auth"
+  });
+  const worksheetGenerationRateLimit = createRateLimiter({
+    windowMs: 60_000,
+    max: env.NODE_ENV === "test" ? 2 : 30,
+    keyPrefix: "worksheet-generate"
+  });
+  const worksheetImportRateLimit = createRateLimiter({
+    windowMs: 60_000,
+    max: env.NODE_ENV === "test" ? 2 : 12,
+    keyPrefix: "worksheet-import"
+  });
+  const profileRateLimit = createRateLimiter({
+    windowMs: 60_000,
+    max: env.NODE_ENV === "test" ? 2 : 10,
+    keyPrefix: "profile"
+  });
+  const leaderboardRateLimit = createRateLimiter({
+    windowMs: 60_000,
+    max: env.NODE_ENV === "test" ? 2 : 60,
+    keyPrefix: "leaderboard"
+  });
 
   app.use(
     cors({
@@ -23,6 +49,12 @@ export const createApp = () => {
   app.use(express.json());
 
   app.use("/api/health", healthRouter);
+  app.use("/api/auth/google", authRateLimit);
+  app.use("/api/auth/refresh", authRateLimit);
+  app.use("/api/users/me/profile", profileRateLimit);
+  app.use("/api/worksheets/generate", worksheetGenerationRateLimit);
+  app.use("/api/worksheets/import-local", worksheetImportRateLimit);
+  app.use("/api/leaderboards", leaderboardRateLimit);
   app.use("/api/auth", authRouter);
   app.use("/api/test-auth", testAuthRouter);
   app.use("/api/worksheets", worksheetRouter);

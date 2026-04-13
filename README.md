@@ -181,6 +181,13 @@ Create a Google OAuth web application in Google Cloud Console and configure:
 - Authorized JavaScript origin for Docker Compose: `http://localhost:5180`
 - Authorized redirect URI: `http://localhost:3000/api/auth/google/callback`
 
+For production:
+
+- set the real frontend domain as an authorized JavaScript origin
+- set the real backend callback URL as an authorized redirect URI
+- if the frontend and API are on different origins, set `VITE_API_BASE_URL` explicitly to the production API URL
+- if the frontend and API are same-origin in production, the frontend now defaults to `${window.location.origin}/api`
+
 Then put your credentials into `.env`:
 
 ```env
@@ -206,6 +213,11 @@ GOOGLE_CLIENT_SECRET=your-google-client-secret
 GOOGLE_CALLBACK_URL=http://localhost:3000/api/auth/google/callback
 POSTGRES_PORT=5433
 ```
+
+Production note:
+
+- keep `VITE_API_BASE_URL` set when serving the frontend from a different origin than the API
+- if you deploy the frontend and API under the same origin, you can omit `VITE_API_BASE_URL` and the app will use `/api`
 
 ## Available scripts
 
@@ -308,6 +320,7 @@ npm run build
 - Imported local worksheets sync into account history but do not count toward leaderboards or competitive stats.
 - Google OAuth uses a validated `state` value and does not place access tokens in callback URLs.
 - Logout revokes the current refresh token server-side.
+- Auth, worksheet generation/import, profile update, and leaderboard endpoints now apply basic request throttling.
 
 ## Notes and future extension points
 

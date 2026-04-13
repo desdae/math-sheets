@@ -1,4 +1,24 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000/api";
+export const resolveApiBaseUrl = (configuredBaseUrl?: string, isDev = false, currentOrigin?: string) => {
+  if (configuredBaseUrl) {
+    return configuredBaseUrl;
+  }
+
+  if (isDev) {
+    return "http://localhost:3000/api";
+  }
+
+  if (currentOrigin) {
+    return `${currentOrigin}/api`;
+  }
+
+  return "/api";
+};
+
+const API_BASE_URL = resolveApiBaseUrl(
+  import.meta.env.VITE_API_BASE_URL,
+  import.meta.env.DEV,
+  typeof window !== "undefined" ? window.location.origin : undefined
+);
 
 export const authTokenStorageKey = "mathsheets.access_token";
 
