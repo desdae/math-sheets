@@ -12,6 +12,7 @@ export type WorksheetSummaryRecord = {
   source?: string;
   createdAt: string;
   submittedAt?: string | null;
+  elapsedSeconds?: number;
   result?: {
     scoreCorrect: number;
     scoreTotal: number;
@@ -175,4 +176,17 @@ export const formatWorksheetTimestamp = (isoDate: string, now = new Date()) => {
   }
 
   return date.toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" });
+};
+
+export const formatElapsedTime = (elapsedSeconds: number) => {
+  const safeSeconds = Math.max(0, Math.floor(elapsedSeconds));
+  const hours = Math.floor(safeSeconds / 3600);
+  const minutes = Math.floor((safeSeconds % 3600) / 60);
+  const seconds = safeSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  }
+
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 };

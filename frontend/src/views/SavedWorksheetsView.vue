@@ -140,6 +140,7 @@ const localRecords = computed<WorksheetSummaryRecord[]>(() =>
     source: worksheet.source,
     createdAt: worksheet.createdAt,
     submittedAt: worksheet.submittedAt ?? null,
+    elapsedSeconds: worksheet.elapsedSeconds,
     result: worksheet.result
   }))
 );

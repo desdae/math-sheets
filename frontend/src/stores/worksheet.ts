@@ -35,6 +35,7 @@ export type WorksheetRecord = {
   localImportKey: string;
   createdAt: string;
   submittedAt?: string | null;
+  elapsedSeconds: number;
   result?: {
     scoreCorrect: number;
     scoreTotal: number;
@@ -62,7 +63,8 @@ const buildLocalWorksheet = (payload: {
   answers: payload.questions.map(() => null),
   source: "local",
   localImportKey: randomKey(),
-  createdAt: new Date().toISOString()
+  createdAt: new Date().toISOString(),
+  elapsedSeconds: 0
 });
 const buildRemoteWorksheetSummary = (record: WorksheetRecord): WorksheetSummaryRecord => ({
   id: record.id,
@@ -78,6 +80,7 @@ const buildRemoteWorksheetSummary = (record: WorksheetRecord): WorksheetSummaryR
   source: "generated",
   createdAt: record.createdAt,
   submittedAt: record.submittedAt ?? null,
+  elapsedSeconds: record.elapsedSeconds,
   result: record.result
 });
 
@@ -183,6 +186,31 @@ export const useWorksheetStore = defineStore("worksheet", {
       this.activeWorksheet.status = "partial";
       this.queueAutoSave();
     },
+    tickActiveWorksheetTimer() {
+      if (!this.activeWorksheet || this.activeWorksheet.status === "completed") {
+        return;
+      }
+
+      this.activeWorksheet.elapsedSeconds += 1;
+
+      if (this.activeWorksheet.source === "local" && this.activeWorksheet.elapsedSeconds % 5 === 0) {
+        this.saveLocalWorksheet(this.activeWorksheet);
+      }
+    },
+    async flushActiveWorksheetProgress() {
+      if (!this.activeWorksheet || this.activeWorksheet.status === "completed") {
+        return;
+      }
+
+      const authStore = useAuthStore();
+
+      if (!authStore.user || this.activeWorksheet.source === "local") {
+        this.saveLocalWorksheet(this.activeWorksheet);
+        return;
+      }
+
+      await this.saveProgress(this.activeWorksheet);
+    },
     setActiveWorksheet(record: WorksheetRecord | null) {
       this.clearAutoSaveTimer();
       this.activeWorksheet = record ? cloneWorksheetRecord(record) : null;
@@ -203,7 +231,8 @@ export const useWorksheetStore = defineStore("worksheet", {
         id: payload.worksheet.id,
         status: payload.worksheet.status,
         source: "remote",
-        questions: payload.questions
+        questions: payload.questions,
+        elapsedSeconds: Number(payload.worksheet.elapsedSeconds ?? record.elapsedSeconds ?? 0)
       };
       const summary = buildRemoteWorksheetSummary(this.activeWorksheet);
       const existingIndex = this.remoteWorksheets.findIndex((entry) => String(entry.id) === String(summary.id));
@@ -238,7 +267,7 @@ export const useWorksheetStore = defineStore("worksheet", {
             questionId: question.id,
             answerText: record.answers[index] ?? ""
           })),
-          elapsedSeconds: 0,
+          elapsedSeconds: record.elapsedSeconds,
           status: record.status === "draft" ? "draft" : "partial"
         })
       });
@@ -281,13 +310,18 @@ export const useWorksheetStore = defineStore("worksheet", {
         scoreCorrect: number;
         scoreTotal: number;
         accuracyPercentage: number;
+        elapsedSeconds: number;
       }>(`/worksheets/${this.activeWorksheet.id}/submit`, {
         method: "POST",
-        body: JSON.stringify({ answers: this.activeWorksheet.answers })
+        body: JSON.stringify({
+          answers: this.activeWorksheet.answers,
+          elapsedSeconds: this.activeWorksheet.elapsedSeconds
+        })
       });
 
       this.activeWorksheet.status = "completed";
       this.activeWorksheet.submittedAt = new Date().toISOString();
+      this.activeWorksheet.elapsedSeconds = result.elapsedSeconds;
       this.activeWorksheet.result = result;
       this.clearAutoSaveTimer();
       this.saveState = "idle";
@@ -336,6 +370,7 @@ export const useWorksheetStore = defineStore("worksheet", {
             questions: worksheet.questions,
             answers: worksheet.answers,
             createdAt: worksheet.createdAt,
+            elapsedSeconds: worksheet.elapsedSeconds,
             submittedAt: worksheet.submittedAt ?? null
           }))
         })

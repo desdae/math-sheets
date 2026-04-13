@@ -41,6 +41,7 @@ const records: WorksheetSummaryRecord[] = [
     worksheetSize: "medium",
     createdAt: "2026-04-13T08:15:00.000Z",
     submittedAt: "2026-04-13T08:25:00.000Z",
+    elapsedSeconds: 252,
     result: { scoreCorrect: 11, scoreTotal: 12, accuracyPercentage: 91.67 }
   },
   {
@@ -53,7 +54,8 @@ const records: WorksheetSummaryRecord[] = [
     numberRangeMin: 1,
     numberRangeMax: 20,
     worksheetSize: "small",
-    createdAt: "2026-04-10T09:00:00.000Z"
+    createdAt: "2026-04-10T09:00:00.000Z",
+    elapsedSeconds: 97
   },
   {
     id: "earlier-1",
@@ -66,7 +68,8 @@ const records: WorksheetSummaryRecord[] = [
     numberRangeMax: 12,
     worksheetSize: "large",
     createdAt: "2026-04-01T09:00:00.000Z",
-    submittedAt: "2026-04-01T09:18:00.000Z"
+    submittedAt: "2026-04-01T09:18:00.000Z",
+    elapsedSeconds: 726
   }
 ];
 
@@ -89,7 +92,8 @@ const localWorksheet = {
   answers: [""],
   source: "local" as const,
   localImportKey: "local-import-1",
-  createdAt: "2026-04-13T09:00:00.000Z"
+  createdAt: "2026-04-13T09:00:00.000Z",
+  elapsedSeconds: 84
 };
 
 const createWrapper = () => mount(SavedWorksheetsView);
@@ -166,6 +170,8 @@ describe("SavedWorksheetsView", () => {
     expect(wrapper.text()).toContain("completed");
     expect(wrapper.text()).toContain("medium");
     expect(wrapper.text()).toContain("addition");
+    expect(wrapper.text()).toContain("Completed in 04:12");
+    expect(wrapper.text()).toContain("Worked for 01:24");
   });
 
   it("toggles a chip filter without navigating", async () => {

@@ -617,6 +617,11 @@ legend {
   font-weight: 600;
 }
 
+.worksheet-timer-label {
+  color: var(--ink);
+  font-weight: 700;
+}
+
 .worksheet-progress-summary {
   color: var(--muted);
   font-weight: 700;

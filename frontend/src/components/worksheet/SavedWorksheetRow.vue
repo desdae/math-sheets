@@ -13,7 +13,10 @@
       <div class="saved-worksheet-row-heading">
         <strong>{{ worksheet.title }}</strong>
         <span class="saved-worksheet-row-subtitle">
-          {{ timestampLabel }} • {{ worksheet.problemCount }} problems
+          {{ timestampLabel }} · {{ worksheet.problemCount }} problems
+          <template v-if="timeSummary">
+            · {{ timeSummary }}
+          </template>
         </span>
       </div>
 
@@ -48,7 +51,12 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { buildWorksheetChips, formatWorksheetTimestamp, type WorksheetSummaryRecord } from "../../lib/saved-worksheets";
+import {
+  buildWorksheetChips,
+  formatElapsedTime,
+  formatWorksheetTimestamp,
+  type WorksheetSummaryRecord
+} from "../../lib/saved-worksheets";
 
 const props = defineProps<{
   worksheet: WorksheetSummaryRecord;
@@ -69,5 +77,15 @@ const formattedScore = computed(() => {
   }
 
   return `${props.worksheet.result.accuracyPercentage}%`;
+});
+const timeSummary = computed(() => {
+  const elapsedSeconds = Number(props.worksheet.elapsedSeconds ?? 0);
+
+  if (elapsedSeconds <= 0) {
+    return "";
+  }
+
+  const label = props.worksheet.status === "completed" ? "Completed in" : "Worked for";
+  return `${label} ${formatElapsedTime(elapsedSeconds)}`;
 });
 </script>

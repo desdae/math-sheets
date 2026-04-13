@@ -1,6 +1,6 @@
 import { createPinia, setActivePinia } from "pinia";
 import { mount } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 import WorksheetView from "../views/WorksheetView.vue";
 import { useWorksheetStore } from "../stores/worksheet";
@@ -41,6 +41,7 @@ const buildWorksheet = () => ({
   source: "local" as const,
   localImportKey: "local-import-1",
   createdAt: new Date().toISOString(),
+  elapsedSeconds: 0,
   result: undefined
 });
 
@@ -50,6 +51,10 @@ describe("WorksheetView", () => {
     const worksheetStore = useWorksheetStore();
     worksheetStore.anonymousWorksheets = [buildWorksheet()];
     worksheetStore.setActiveWorksheet(buildWorksheet());
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("shows unanswered count and does not show wrong-answer state before submit", async () => {
@@ -81,6 +86,7 @@ describe("WorksheetView", () => {
       ...buildWorksheet(),
       status: "completed",
       submittedAt: new Date().toISOString(),
+      elapsedSeconds: 242,
       result: {
         scoreCorrect: 2,
         scoreTotal: 4,
@@ -91,6 +97,8 @@ describe("WorksheetView", () => {
     const wrapper = mount(WorksheetView);
 
     expect(wrapper.text()).toContain("Completed and locked");
+    expect(wrapper.get('[data-testid="worksheet-live-timer"]').text()).toContain("Completed in: 04:02");
+    expect(wrapper.text()).toContain("Completed and locked in 04:02");
     expect(wrapper.find('[data-testid="answer-state-1"]').attributes("data-answer-state")).toBe("correct");
     expect(wrapper.find('[data-testid="answer-state-3"]').attributes("data-answer-state")).toBe("wrong");
     expect(wrapper.find('[data-testid="answer-input-1"]').attributes("disabled")).toBeDefined();
@@ -111,5 +119,17 @@ describe("WorksheetView", () => {
     const wrapper = mount(WorksheetView);
 
     expect(wrapper.get('[data-testid="worksheet-grid"]').attributes("data-worksheet-size")).toBe("large");
+  });
+
+  it("starts a live timer immediately after the worksheet loads", async () => {
+    vi.useFakeTimers();
+    const wrapper = mount(WorksheetView);
+
+    expect(wrapper.get('[data-testid="worksheet-live-timer"]').text()).toContain("Time: 00:00");
+
+    vi.advanceTimersByTime(3000);
+    await nextTick();
+
+    expect(wrapper.get('[data-testid="worksheet-live-timer"]').text()).toContain("Time: 00:03");
   });
 });

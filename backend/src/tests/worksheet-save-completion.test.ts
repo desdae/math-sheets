@@ -64,6 +64,29 @@ describe("saveWorksheetAnswers", () => {
     });
   });
 
+  it("persists elapsed seconds on worksheet saves", async () => {
+    queryMock
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce({ rows: [{ id: "worksheet-1", status: "partial" }] })
+      .mockResolvedValueOnce({ rows: [{ id: "attempt-1" }] })
+      .mockResolvedValueOnce({ rows: [{ id: "question-1" }] })
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(undefined);
+
+    const { saveWorksheetAnswers } = await import("../repositories/worksheet.repository.js");
+
+    await saveWorksheetAnswers({
+      worksheetId: "worksheet-1",
+      userId: "user-1",
+      answers: [{ questionId: "question-1", answerText: "7" }],
+      elapsedSeconds: 92,
+      status: "partial"
+    });
+
+    expect(queryMock.mock.calls.some((call) => Array.isArray(call[1]) && call[1].includes(92))).toBe(true);
+  });
+
   it("does not update user statistics for non-competitive imported worksheets", async () => {
     queryMock
       .mockResolvedValueOnce(undefined)
@@ -81,7 +104,7 @@ describe("saveWorksheetAnswers", () => {
           }
         ]
       })
-      .mockResolvedValueOnce({ rows: [{ id: "attempt-1", user_id: "user-1" }] })
+      .mockResolvedValueOnce({ rows: [{ id: "attempt-1", user_id: "user-1", elapsed_seconds: 142 }] })
       .mockResolvedValueOnce(undefined)
       .mockResolvedValueOnce(undefined)
       .mockResolvedValueOnce(undefined)
@@ -98,7 +121,8 @@ describe("saveWorksheetAnswers", () => {
     expect(result).toMatchObject({
       scoreCorrect: 1,
       scoreTotal: 1,
-      accuracyPercentage: 100
+      accuracyPercentage: 100,
+      elapsedSeconds: 142
     });
     expect(queryMock.mock.calls.some((call) => String(call[0]).includes("INSERT INTO user_statistics"))).toBe(false);
   });

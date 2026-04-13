@@ -30,6 +30,7 @@ describe("listWorksheetsByUserId", () => {
           source: "generated",
           created_at: "2026-04-13T08:15:00.000Z",
           submitted_at: "2026-04-13T08:25:00.000Z",
+          elapsed_seconds: 305,
           score_correct: 11,
           score_total: 12,
           accuracy_percentage: "91.67"
@@ -42,6 +43,7 @@ describe("listWorksheetsByUserId", () => {
 
     expect(rows[0]).toMatchObject({
       id: "worksheet-1",
+      elapsedSeconds: 305,
       result: {
         scoreCorrect: 11,
         scoreTotal: 12,

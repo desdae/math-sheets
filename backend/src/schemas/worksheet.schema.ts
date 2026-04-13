@@ -27,7 +27,8 @@ export const saveWorksheetSchema = z.object({
 });
 
 export const submitWorksheetSchema = z.object({
-  answers: z.array(z.string().nullable())
+  answers: z.array(z.string().nullable()),
+  elapsedSeconds: z.number().int().min(0).optional()
 });
 
 export const importWorksheetsSchema = z.object({
@@ -49,6 +50,7 @@ export const importWorksheetsSchema = z.object({
       ),
       answers: z.array(z.string().nullable()).default([]),
       createdAt: z.string().datetime().optional(),
+      elapsedSeconds: z.number().int().min(0).optional(),
       submittedAt: z.string().datetime().nullable().optional()
     })
   )

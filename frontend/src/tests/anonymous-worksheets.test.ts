@@ -49,6 +49,7 @@ describe("anonymous worksheets", () => {
       source: "local",
       localImportKey: "import-key",
       createdAt: new Date().toISOString(),
+      elapsedSeconds: 125,
       submittedAt: new Date().toISOString(),
       result: {
         scoreCorrect: 2,
@@ -87,17 +88,18 @@ describe("anonymous worksheets", () => {
           worksheetSize: "small",
           cleanDivisionOnly: true
         },
-        questions: [
-          { questionOrder: 1, operation: "+", leftOperand: 2, rightOperand: 2, displayText: "2 + 2 =", correctAnswer: 4 },
-          { questionOrder: 2, operation: "+", leftOperand: 3, rightOperand: 1, displayText: "3 + 1 =", correctAnswer: 4 }
-        ],
-        answers: ["4", "4"],
-        source: "local",
-        localImportKey: "import-key",
-        createdAt: "2026-04-10T09:00:00.000Z",
-        submittedAt: "2026-04-10T09:05:00.000Z",
-        result: {
-          scoreCorrect: 2,
+      questions: [
+        { questionOrder: 1, operation: "+", leftOperand: 2, rightOperand: 2, displayText: "2 + 2 =", correctAnswer: 4 },
+        { questionOrder: 2, operation: "+", leftOperand: 3, rightOperand: 1, displayText: "3 + 1 =", correctAnswer: 4 }
+      ],
+      answers: ["4", "4"],
+      source: "local",
+      localImportKey: "import-key",
+      createdAt: "2026-04-10T09:00:00.000Z",
+      elapsedSeconds: 305,
+      submittedAt: "2026-04-10T09:05:00.000Z",
+      result: {
+        scoreCorrect: 2,
           scoreTotal: 2,
           accuracyPercentage: 100
         }
@@ -115,9 +117,59 @@ describe("anonymous worksheets", () => {
       worksheets: [
         {
           createdAt: "2026-04-10T09:00:00.000Z",
+          elapsedSeconds: 305,
           submittedAt: "2026-04-10T09:05:00.000Z"
         }
       ]
+    });
+  });
+
+  it("sends elapsed seconds when saving a signed-in worksheet", async () => {
+    setActivePinia(createPinia());
+    const authStore = useAuthStore();
+    const worksheetStore = useWorksheetStore();
+
+    authStore.user = {
+      id: "user-1",
+      email: "test@example.com",
+      publicNickname: "Test User"
+    };
+
+    apiFetchMock.mockResolvedValue(undefined);
+
+    await worksheetStore.saveProgress({
+      id: "remote-1",
+      title: "Timed Worksheet",
+      status: "partial",
+      config: {
+        problemCount: 1,
+        difficulty: "easy",
+        allowedOperations: ["+"],
+        numberRangeMin: 1,
+        numberRangeMax: 10,
+        worksheetSize: "small",
+        cleanDivisionOnly: true
+      },
+      questions: [
+        {
+          id: "question-1",
+          questionOrder: 1,
+          operation: "+",
+          leftOperand: 2,
+          rightOperand: 2,
+          displayText: "2 + 2 =",
+          correctAnswer: 4
+        }
+      ],
+      answers: ["4"],
+      source: "remote",
+      localImportKey: "remote-1",
+      createdAt: "2026-04-10T09:00:00.000Z",
+      elapsedSeconds: 125
+    });
+
+    expect(JSON.parse(String(apiFetchMock.mock.calls[0]?.[1]?.body))).toMatchObject({
+      elapsedSeconds: 125
     });
   });
 });

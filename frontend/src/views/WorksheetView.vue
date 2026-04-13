@@ -6,6 +6,9 @@
         <h1>{{ worksheet.title }}</h1>
       </div>
       <p class="lede">{{ worksheet.questions.length }} problems · {{ difficultyLabel }}</p>
+      <p data-testid="worksheet-live-timer" class="worksheet-timer-label">
+        {{ isCompleted ? "Completed in" : "Time" }}: {{ formattedElapsedTime }}
+      </p>
       <p class="worksheet-progress-summary">{{ answeredCount }} of {{ worksheet.questions.length }} answered</p>
       <div class="worksheet-progress-bar" aria-hidden="true">
         <span :style="{ width: `${progressPercent}%` }" />
@@ -29,7 +32,7 @@
         <p class="eyebrow">{{ isCompleted ? "Finished" : "Before you submit" }}</p>
         <h2>{{ isCompleted ? "Completed" : "Review before submit" }}</h2>
         <p v-if="!isCompleted">{{ unansweredCount }} unanswered</p>
-        <p v-else>Completed and locked</p>
+        <p v-else>Completed and locked in {{ formattedElapsedTime }}</p>
       </div>
       <div v-if="!isCompleted" class="worksheet-review-actions">
         <div v-if="unansweredCount > 0" data-testid="worksheet-submit-warning" class="worksheet-submit-warning">
@@ -70,10 +73,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import WorksheetCompletionActions from "../components/worksheet/WorksheetCompletionActions.vue";
 import WorksheetGrid from "../components/worksheet/WorksheetGrid.vue";
+import { formatElapsedTime } from "../lib/saved-worksheets";
 import { useAuthStore } from "../stores/auth";
 import { useWorksheetStore } from "../stores/worksheet";
 
@@ -81,6 +85,7 @@ const route = useRoute();
 const authStore = useAuthStore();
 const worksheetStore = useWorksheetStore();
 const showSubmitConfirm = ref(false);
+let timerInterval: ReturnType<typeof setInterval> | null = null;
 
 const worksheet = computed(() => worksheetStore.activeWorksheet);
 const isCompleted = computed(() => worksheet.value?.status === "completed");
@@ -100,6 +105,7 @@ const progressPercent = computed(() => {
 
   return Math.round((answeredCount.value / worksheet.value.questions.length) * 100);
 });
+const formattedElapsedTime = computed(() => formatElapsedTime(worksheet.value?.elapsedSeconds ?? 0));
 const saveStatusLabel = computed(() => {
   if (isCompleted.value) {
     return "Completed and locked";
@@ -167,12 +173,32 @@ const resultSummary = computed(() => {
   };
 });
 
+const clearTimerInterval = () => {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+};
+
+const startTimerInterval = () => {
+  clearTimerInterval();
+
+  if (!worksheet.value || isCompleted.value) {
+    return;
+  }
+
+  timerInterval = setInterval(() => {
+    worksheetStore.tickActiveWorksheetTimer();
+  }, 1000);
+};
+
 onMounted(async () => {
   const worksheetId = String(route.params.id);
 
   const localWorksheet = worksheetStore.anonymousWorksheets.find((entry) => entry.id === worksheetId);
   if (localWorksheet) {
     worksheetStore.setActiveWorksheet(localWorksheet);
+    startTimerInterval();
     return;
   }
 
@@ -207,28 +233,31 @@ onMounted(async () => {
       localImportKey: payload.worksheet.id,
       createdAt: payload.worksheet.createdAt,
       submittedAt: payload.worksheet.submittedAt,
-      result:
-        payload.worksheet.status === "completed"
-          ? {
-              scoreCorrect: payload.answers.filter((entry: { isCorrect: boolean | null }) => Boolean(entry.isCorrect)).length,
-              scoreTotal: payload.questions.length,
-              accuracyPercentage: Number(
-                (
-                  (payload.answers.filter((entry: { isCorrect: boolean | null }) => Boolean(entry.isCorrect)).length /
-                    Math.max(payload.questions.length, 1)) *
-                  100
-                ).toFixed(2)
-              )
-            }
-          : undefined
+      elapsedSeconds: Number(payload.worksheet.elapsedSeconds ?? 0),
+      result: payload.worksheet.result
     });
   }
+
+  startTimerInterval();
 });
 
 watch(unansweredCount, (count) => {
   if (count === 0) {
     showSubmitConfirm.value = false;
   }
+});
+
+watch(isCompleted, (completed) => {
+  if (completed) {
+    clearTimerInterval();
+  } else {
+    startTimerInterval();
+  }
+});
+
+onUnmounted(() => {
+  clearTimerInterval();
+  void worksheetStore.flushActiveWorksheetProgress();
 });
 
 const confirmSubmitWorksheet = async () => {

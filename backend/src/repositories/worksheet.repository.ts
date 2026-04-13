@@ -23,6 +23,7 @@ const mapWorksheetRow = (row: Record<string, unknown>) => ({
   source: row.source,
   createdAt: row.created_at,
   submittedAt: row.submitted_at,
+  elapsedSeconds: Number(row.elapsed_seconds ?? 0),
   result:
     row.score_total != null
       ? {
@@ -64,6 +65,7 @@ export const createWorksheetWithAttempt = async (input: {
   localImportKey?: string;
   status?: WorksheetStatus;
   createdAt?: string;
+  elapsedSeconds?: number;
 }) => {
   const client = await pool.connect();
   const initialTimestamp = input.createdAt ?? new Date().toISOString();
@@ -128,10 +130,10 @@ export const createWorksheetWithAttempt = async (input: {
     }
 
     const attemptResult = await client.query(
-      `INSERT INTO worksheet_attempts (worksheet_id, user_id, status)
-       VALUES ($1, $2, $3)
+      `INSERT INTO worksheet_attempts (worksheet_id, user_id, status, elapsed_seconds)
+       VALUES ($1, $2, $3, $4)
        RETURNING *`,
-      [worksheet.id, input.userId, input.status ?? "draft"]
+      [worksheet.id, input.userId, input.status ?? "draft", input.elapsedSeconds ?? 0]
     );
 
     await client.query("COMMIT");
@@ -213,7 +215,23 @@ export const saveWorksheetAnswers = async (input: {
 };
 
 export const getWorksheetDetails = async (worksheetId: string, userId: string) => {
-  const worksheetResult = await pool.query(`SELECT * FROM worksheets WHERE id = $1 AND user_id = $2`, [worksheetId, userId]);
+  const worksheetResult = await pool.query(
+    `SELECT w.*,
+            att.elapsed_seconds,
+            att.score_correct,
+            att.score_total,
+            att.accuracy_percentage
+     FROM worksheets w
+     LEFT JOIN LATERAL (
+       SELECT elapsed_seconds, score_correct, score_total, accuracy_percentage
+       FROM worksheet_attempts
+       WHERE worksheet_id = w.id
+       ORDER BY started_at ASC
+       LIMIT 1
+     ) att ON TRUE
+     WHERE w.id = $1 AND w.user_id = $2`,
+    [worksheetId, userId]
+  );
 
   if (!worksheetResult.rows[0]) {
     throw new HttpError(404, "Worksheet not found");
@@ -252,7 +270,12 @@ export const getWorksheetDetails = async (worksheetId: string, userId: string) =
   };
 };
 
-export const submitWorksheet = async (input: { worksheetId: string; userId: string; answers: Array<string | null> }) => {
+export const submitWorksheet = async (input: {
+  worksheetId: string;
+  userId: string;
+  answers: Array<string | null>;
+  elapsedSeconds?: number;
+}) => {
   const client = await pool.connect();
 
   try {
@@ -280,11 +303,12 @@ export const submitWorksheet = async (input: { worksheetId: string; userId: stri
 
     const scored = scoreWorksheet(questions, input.answers);
     const attemptResult = await client.query(
-      `SELECT id, user_id FROM worksheet_attempts WHERE worksheet_id = $1 ORDER BY started_at ASC LIMIT 1`,
+      `SELECT id, user_id, elapsed_seconds FROM worksheet_attempts WHERE worksheet_id = $1 ORDER BY started_at ASC LIMIT 1`,
       [input.worksheetId]
     );
 
     const attempt = attemptResult.rows[0];
+    const finalElapsedSeconds = Math.max(Number(attempt.elapsed_seconds ?? 0), Number(input.elapsedSeconds ?? 0));
 
     for (const [index, answer] of scored.evaluatedAnswers.entries()) {
       await client.query(
@@ -301,11 +325,12 @@ export const submitWorksheet = async (input: { worksheetId: string; userId: stri
        SET status = 'completed',
            completed_at = NOW(),
            last_saved_at = NOW(),
+           elapsed_seconds = $5,
            score_correct = $2,
            score_total = $3,
            accuracy_percentage = $4
        WHERE id = $1`,
-      [attempt.id, scored.scoreCorrect, scored.scoreTotal, scored.accuracyPercentage]
+      [attempt.id, scored.scoreCorrect, scored.scoreTotal, scored.accuracyPercentage, finalElapsedSeconds]
     );
 
     await client.query(
@@ -332,7 +357,10 @@ export const submitWorksheet = async (input: { worksheetId: string; userId: stri
     }
 
     await client.query("COMMIT");
-    return scored;
+    return {
+      ...scored,
+      elapsedSeconds: finalElapsedSeconds
+    };
   } catch (error) {
     await client.query("ROLLBACK");
     throw error;
@@ -351,6 +379,7 @@ export const importLocalWorksheets = async (
     questions: GeneratedQuestion[];
     answers: Array<string | null>;
     createdAt?: string;
+    elapsedSeconds?: number;
   }>
 ) => {
   const imported = [];
@@ -364,14 +393,16 @@ export const importLocalWorksheets = async (
       source: "imported",
       localImportKey: worksheet.localImportKey,
       status: worksheet.status,
-      createdAt: worksheet.createdAt
+      createdAt: worksheet.createdAt,
+      elapsedSeconds: worksheet.elapsedSeconds
     });
 
     if (worksheet.status === "completed") {
       await submitWorksheet({
         worksheetId: created.worksheet.id as string,
         userId,
-        answers: worksheet.answers
+        answers: worksheet.answers,
+        elapsedSeconds: worksheet.elapsedSeconds
       });
     }
 
@@ -384,12 +415,13 @@ export const importLocalWorksheets = async (
 export const listWorksheetsByUserId = async (userId: string) => {
   const result = await pool.query(
     `SELECT w.*,
+            att.elapsed_seconds,
             att.score_correct,
             att.score_total,
             att.accuracy_percentage
      FROM worksheets w
      LEFT JOIN LATERAL (
-       SELECT score_correct, score_total, accuracy_percentage
+       SELECT elapsed_seconds, score_correct, score_total, accuracy_percentage
        FROM worksheet_attempts
        WHERE worksheet_id = w.id
        ORDER BY started_at ASC

@@ -83,7 +83,8 @@ worksheetRouter.post(
       await submitWorksheet({
         worksheetId: String(req.params.id),
         userId: req.user!.id,
-        answers: req.body.answers
+        answers: req.body.answers,
+        elapsedSeconds: req.body.elapsedSeconds
       })
     );
   })
