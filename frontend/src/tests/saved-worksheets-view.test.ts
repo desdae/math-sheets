@@ -125,6 +125,7 @@ describe("saved-worksheets helpers", () => {
     expect(chips.map((chip) => chip.value)).toContain("addition");
     expect(chips.map((chip) => chip.value)).toContain("division");
     expect(chips.map((chip) => chip.value)).toContain("1-100");
+    expect(chips.find((chip) => chip.kind === "size")?.label).toBe("medium sheet");
   });
 
   it("applies multi-select filters across status, difficulty, and operation", () => {

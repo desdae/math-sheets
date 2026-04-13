@@ -72,7 +72,7 @@ export const buildWorksheetChips = (record: WorksheetSummaryRecord): WorksheetCh
     {
       key: `size:${record.worksheetSize}`,
       value: record.worksheetSize,
-      label: record.worksheetSize,
+      label: `${record.worksheetSize} sheet`,
       kind: "size"
     },
     {
