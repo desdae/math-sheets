@@ -219,6 +219,22 @@ Production note:
 - keep `VITE_API_BASE_URL` set when serving the frontend from a different origin than the API
 - if you deploy the frontend and API under the same origin, you can omit `VITE_API_BASE_URL` and the app will use `/api`
 
+## Production hardening
+
+Current recommended production deployment:
+
+- serve the frontend and backend from the same origin
+- terminate traffic over HTTPS only
+- let the frontend call the API through `/api`
+
+For this same-origin setup, backend auth cookies are now intentionally configured as:
+
+- `HttpOnly`
+- `SameSite=Lax`
+- `Secure` in production
+
+If you later split the frontend and API onto different origins or subdomains, revisit the auth cookie and CORS configuration before launch.
+
 ## Available scripts
 
 Root:
