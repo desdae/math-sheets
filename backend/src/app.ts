@@ -1,6 +1,7 @@
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
+import helmet from "helmet";
 import { env } from "./config/env.js";
 import { errorHandler } from "./middleware/error-handler.js";
 import { createRateLimiter } from "./middleware/rate-limit.js";
@@ -13,6 +14,11 @@ import { worksheetRouter } from "./routes/worksheet.routes.js";
 
 export const createApp = () => {
   const app = express();
+
+  if (env.NODE_ENV === "production") {
+    app.set("trust proxy", 1);
+  }
+
   const authRateLimit = createRateLimiter({
     windowMs: 60_000,
     max: env.NODE_ENV === "test" ? 2 : 12,
@@ -40,13 +46,19 @@ export const createApp = () => {
   });
 
   app.use(
+    helmet({
+      contentSecurityPolicy: false
+    })
+  );
+  app.use(
     cors({
       origin: env.APP_BASE_URL,
       credentials: true
     })
   );
   app.use(cookieParser());
-  app.use(express.json());
+  app.use(express.json({ limit: "100kb" }));
+  app.use(express.urlencoded({ extended: true, limit: "100kb" }));
 
   app.use("/api/health", healthRouter);
   app.use("/api/auth/google", authRateLimit);
