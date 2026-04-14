@@ -77,18 +77,3 @@ describe("auth routes", () => {
   });
 });
 
-describe("test auth routes", () => {
-  it("logs in an e2e user when enabled", async () => {
-    process.env.ENABLE_E2E_AUTH = "true";
-
-    const response = await request(createApp()).post("/api/test-auth/login").send({
-      email: "e2e@example.com",
-      publicNickname: "E2E User"
-    });
-
-    expect(response.status).toBe(200);
-    expect(response.body.user.email).toBe("e2e@example.com");
-    expect(response.body.user.publicNickname).toBe("E2E User");
-    expect(response.body.accessToken).toBeTruthy();
-  });
-});

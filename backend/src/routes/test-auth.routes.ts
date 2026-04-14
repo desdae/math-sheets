@@ -11,7 +11,8 @@ const loginSchema = z.object({
   publicNickname: z.string().trim().min(1).nullable().optional()
 });
 
-const isE2EAuthEnabled = () => process.env.ENABLE_E2E_AUTH === "true" || env.ENABLE_E2E_AUTH;
+const isE2EAuthEnabled = () =>
+  process.env.NODE_ENV === "test" && (process.env.ENABLE_E2E_AUTH === "true" || env.ENABLE_E2E_AUTH);
 
 export const testAuthRouter = Router();
 
