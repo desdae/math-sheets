@@ -16,6 +16,15 @@ import {
 
 export const authRouter = Router();
 const oauthStateCookieName = "mathsheets_oauth_state";
+const getAuthCookieOptions = () => ({
+  httpOnly: true,
+  sameSite: "lax" as const,
+  secure: env.NODE_ENV === "production",
+  path: "/api/auth"
+});
+const authCookieClearOptions = {
+  path: "/api/auth"
+};
 
 authRouter.get("/google", (_req, res) => {
   if (!isGoogleOAuthConfigured()) {
@@ -24,12 +33,7 @@ authRouter.get("/google", (_req, res) => {
 
   const state = randomBytes(24).toString("hex");
 
-  res.cookie(oauthStateCookieName, state, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: env.NODE_ENV === "production",
-    path: "/api/auth"
-  });
+  res.cookie(oauthStateCookieName, state, getAuthCookieOptions());
 
   const params = new URLSearchParams({
     client_id: env.GOOGLE_CLIENT_ID,
@@ -55,17 +59,12 @@ authRouter.get(
       throw new HttpError(401, "Invalid oauth state");
     }
 
-    res.clearCookie(oauthStateCookieName, { path: "/api/auth" });
+    res.clearCookie(oauthStateCookieName, authCookieClearOptions);
     const profile = await exchangeCodeForGoogleProfile(code);
     const user = await findOrCreateUserFromGoogleProfile(profile);
     const { refreshToken } = await issueSessionTokens(user.id);
 
-    res.cookie(refreshCookieName, refreshToken, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: env.NODE_ENV === "production",
-      path: "/api/auth"
-    });
+    res.cookie(refreshCookieName, refreshToken, getAuthCookieOptions());
 
     res.redirect(`${env.APP_BASE_URL}/auth/callback`);
   })
@@ -91,12 +90,7 @@ authRouter.post(
   asyncHandler(async (req, res) => {
     const tokens = await rotateRefreshToken(readRefreshTokenCookie(req));
 
-    res.cookie(refreshCookieName, tokens.refreshToken, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: env.NODE_ENV === "production",
-      path: "/api/auth"
-    });
+    res.cookie(refreshCookieName, tokens.refreshToken, getAuthCookieOptions());
 
     res.json({ accessToken: tokens.accessToken });
   })
@@ -104,6 +98,6 @@ authRouter.post(
 
 authRouter.post("/logout", asyncHandler(async (req, res) => {
   await revokeRefreshTokenFromCookie(readRefreshTokenCookie(req));
-  res.clearCookie(refreshCookieName, { path: "/api/auth" });
+  res.clearCookie(refreshCookieName, authCookieClearOptions);
   res.status(204).send();
 }));
