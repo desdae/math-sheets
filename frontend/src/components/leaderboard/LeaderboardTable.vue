@@ -17,7 +17,7 @@
       <tbody>
         <tr
           v-for="(row, index) in rows"
-          :key="row.user_id"
+          :key="`${row.public_nickname}-${index}`"
           :class="{ 'leaderboard-row-current': row.public_nickname === currentUserNickname }"
         >
           <td>{{ index + 1 }}</td>
@@ -32,14 +32,10 @@
 </template>
 
 <script setup lang="ts">
+import type { LeaderboardRow } from "../../stores/leaderboard";
+
 defineProps<{
-  rows: Array<{
-    user_id: string;
-    public_nickname: string;
-    worksheets_completed: number;
-    problems_solved: number;
-    accuracy_percentage: number;
-  }>;
+  rows: LeaderboardRow[];
   currentUserNickname?: string | null;
   isLoading?: boolean;
 }>();

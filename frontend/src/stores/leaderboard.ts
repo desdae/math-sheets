@@ -4,8 +4,7 @@ import { apiFetch } from "../lib/api";
 type LeaderboardMetric = "worksheets" | "problems" | "accuracy";
 type LeaderboardPeriod = "daily" | "weekly" | "monthly";
 
-type LeaderboardRow = {
-  user_id: string;
+export type LeaderboardRow = {
   public_nickname: string;
   worksheets_completed: number;
   problems_solved: number;
