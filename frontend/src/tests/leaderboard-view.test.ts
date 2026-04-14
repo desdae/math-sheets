@@ -29,7 +29,6 @@ describe("LeaderboardView", () => {
     apiFetchMock.mockResolvedValue({
       leaderboard: [
         {
-          user_id: "user-1",
           public_nickname: "des",
           worksheets_completed: 1,
           problems_solved: 12,

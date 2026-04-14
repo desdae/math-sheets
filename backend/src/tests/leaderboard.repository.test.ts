@@ -33,7 +33,9 @@ describe("getLeaderboard", () => {
     const rows = await getLeaderboard({ period: "daily", metric: "worksheets" });
 
     expect(String(queryMock.mock.calls[0]?.[0])).toContain("public_nickname ASC");
+    expect(String(queryMock.mock.calls[0]?.[0])).not.toContain("SELECT *");
     expect(rows[0].public_nickname).toBe("Quiet Fox");
+    expect(rows[0]).not.toHaveProperty("user_id");
   });
 
   it("defines leaderboard SQL views with public nicknames only", () => {
