@@ -12,6 +12,14 @@ const metricOrderMap = {
   accuracy: "accuracy_percentage DESC, problems_solved DESC, public_nickname ASC"
 } as const;
 
+type LeaderboardRow = {
+  public_nickname: string;
+  worksheets_completed: number;
+  problems_solved: number;
+  correct_answers: number;
+  accuracy_percentage: number;
+};
+
 export const getLeaderboard = async ({
   period,
   metric
@@ -33,7 +41,7 @@ export const getLeaderboard = async ({
   `;
 
   const result = await pool.query(sql, [metric]);
-  return result.rows.map((row) => ({
+  return (result.rows as LeaderboardRow[]).map((row) => ({
     public_nickname: row.public_nickname,
     worksheets_completed: row.worksheets_completed,
     problems_solved: row.problems_solved,

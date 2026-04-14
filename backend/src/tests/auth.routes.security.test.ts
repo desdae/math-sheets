@@ -1,12 +1,21 @@
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp } from "../app.js";
+import { env } from "../config/env.js";
+import { refreshCookieName } from "../services/token.service.js";
 
-const { exchangeCodeForGoogleProfileMock, findOrCreateUserFromGoogleProfileMock, issueSessionTokensMock, revokeRefreshTokenFromCookieMock } = vi.hoisted(() => ({
+const {
+  exchangeCodeForGoogleProfileMock,
+  findOrCreateUserFromGoogleProfileMock,
+  issueSessionTokensMock,
+  revokeRefreshTokenFromCookieMock,
+  rotateRefreshTokenMock
+} = vi.hoisted(() => ({
   exchangeCodeForGoogleProfileMock: vi.fn(),
   findOrCreateUserFromGoogleProfileMock: vi.fn(),
   issueSessionTokensMock: vi.fn(),
-  revokeRefreshTokenFromCookieMock: vi.fn()
+  revokeRefreshTokenFromCookieMock: vi.fn(),
+  rotateRefreshTokenMock: vi.fn()
 }));
 
 vi.mock("../services/google-oauth.service.js", async () => {
@@ -39,16 +48,21 @@ vi.mock("../services/token.service.js", async () => {
   return {
     ...actual,
     issueSessionTokens: issueSessionTokensMock,
-    revokeRefreshTokenFromCookie: revokeRefreshTokenFromCookieMock
+    revokeRefreshTokenFromCookie: revokeRefreshTokenFromCookieMock,
+    rotateRefreshToken: rotateRefreshTokenMock
   };
 });
 
 describe("google oauth security", () => {
+  const originalNodeEnv = env.NODE_ENV;
+
   beforeEach(() => {
+    env.NODE_ENV = originalNodeEnv;
     exchangeCodeForGoogleProfileMock.mockReset();
     findOrCreateUserFromGoogleProfileMock.mockReset();
     issueSessionTokensMock.mockReset();
     revokeRefreshTokenFromCookieMock.mockReset();
+    rotateRefreshTokenMock.mockReset();
   });
 
   it("adds a state value to the google redirect", async () => {
@@ -113,5 +127,69 @@ describe("google oauth security", () => {
 
     expect(response.status).toBe(204);
     expect(revokeRefreshTokenFromCookieMock).toHaveBeenCalledWith("test-token");
+  });
+
+  it("sets refresh cookies without Secure in development", async () => {
+    env.NODE_ENV = "development";
+    rotateRefreshTokenMock.mockResolvedValue({
+      accessToken: "access-token",
+      refreshToken: "refresh-token"
+    });
+
+    const response = await request(createApp())
+      .post("/api/auth/refresh")
+      .set("Cookie", [`${refreshCookieName}=valid-token`]);
+
+    const cookieHeader = Array.isArray(response.headers["set-cookie"])
+      ? response.headers["set-cookie"].join(";")
+      : String(response.headers["set-cookie"] ?? "");
+
+    expect(response.status).toBe(200);
+    expect(cookieHeader).toContain(`${refreshCookieName}=refresh-token`);
+    expect(cookieHeader).not.toContain("Secure");
+    expect(cookieHeader).toContain("HttpOnly");
+    expect(cookieHeader).toContain("Path=/api/auth");
+  });
+
+  it("sets refresh cookies with Secure in production", async () => {
+    env.NODE_ENV = "production";
+    rotateRefreshTokenMock.mockResolvedValue({
+      accessToken: "access-token",
+      refreshToken: "refresh-token"
+    });
+
+    const response = await request(createApp())
+      .post("/api/auth/refresh")
+      .set("Cookie", [`${refreshCookieName}=valid-token`]);
+
+    const cookieHeader = Array.isArray(response.headers["set-cookie"])
+      ? response.headers["set-cookie"].join(";")
+      : String(response.headers["set-cookie"] ?? "");
+
+    expect(response.status).toBe(200);
+    expect(cookieHeader).toContain(`${refreshCookieName}=refresh-token`);
+    expect(cookieHeader).toContain("Secure");
+    expect(cookieHeader).toContain("HttpOnly");
+    expect(cookieHeader).toContain("Path=/api/auth");
+  });
+
+  it("sets the oauth state cookie with the same explicit security policy", async () => {
+    env.NODE_ENV = "production";
+
+    const response = await request(createApp()).get("/api/auth/google");
+
+    if (response.status !== 302) {
+      expect(response.status).toBe(503);
+      return;
+    }
+
+    const cookieHeader = Array.isArray(response.headers["set-cookie"])
+      ? response.headers["set-cookie"].join(";")
+      : String(response.headers["set-cookie"] ?? "");
+
+    expect(cookieHeader).toContain("mathsheets_oauth_state=");
+    expect(cookieHeader).toContain("HttpOnly");
+    expect(cookieHeader).toContain("Secure");
+    expect(cookieHeader).toContain("Path=/api/auth");
   });
 });

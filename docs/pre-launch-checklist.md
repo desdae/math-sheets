@@ -5,9 +5,9 @@ Use this checklist before publishing MathSheets on a real web domain.
 ## Code and Security
 
 - [ ] Hard-disable `backend/src/routes/test-auth.routes.ts` outside `NODE_ENV=test`
-- [ ] Finalize production cookie settings in `backend/src/routes/auth.routes.ts`
-- [ ] Add security headers
-- [ ] Add Express body-size limits
+- [ ] Verify same-origin production auth cookies work over HTTPS
+- [ ] Confirm security headers are present in the deployed app
+- [ ] Confirm body-size limits do not break normal worksheet flows
 - [ ] Recheck rate-limit thresholds for real usage
 
 ## Frontend and API Configuration
