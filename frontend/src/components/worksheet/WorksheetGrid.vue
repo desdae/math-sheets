@@ -17,15 +17,18 @@
         :data-testid="`answer-state-${question.questionOrder}`"
         :data-answer-state="answerStates[question.questionOrder - 1]"
       >
-        <label :for="`answer-${question.questionOrder}`">{{ question.displayText }}</label>
-        <input
-          :data-testid="`answer-input-${question.questionOrder}`"
-          :id="`answer-${question.questionOrder}`"
-          :value="answers[question.questionOrder - 1] ?? ''"
-          :disabled="disabled"
-          inputmode="numeric"
-          @input="$emit('update-answer', question.questionOrder - 1, ($event.target as HTMLInputElement).value)"
-        />
+        <div class="worksheet-answer-row" :data-testid="`answer-row-${question.questionOrder}`">
+          <label class="worksheet-answer-label" :for="`answer-${question.questionOrder}`">{{ question.displayText }}</label>
+          <input
+            class="worksheet-answer-input"
+            :data-testid="`answer-input-${question.questionOrder}`"
+            :id="`answer-${question.questionOrder}`"
+            :value="answers[question.questionOrder - 1] ?? ''"
+            :disabled="disabled"
+            inputmode="numeric"
+            @input="$emit('update-answer', question.questionOrder - 1, ($event.target as HTMLInputElement).value)"
+          />
+        </div>
       </div>
     </article>
   </section>

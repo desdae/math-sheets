@@ -1,325 +1,563 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MathSheets Visual Companion</title>
-  <style>
-    :root {
-      --bg: #f5efe5;
-      --panel: rgba(255, 250, 242, 0.92);
-      --panel-strong: #fffdf8;
-      --ink: #1f2430;
-      --muted: #5c6473;
-      --line: rgba(31, 36, 48, 0.12);
-      --accent: #d95d39;
-      --accent-soft: rgba(217, 93, 57, 0.12);
-      --accent-2: #2b6cb0;
-      --ok: #2f855a;
-      --warn: #b7791f;
-      --shadow: 0 22px 60px rgba(48, 38, 25, 0.12);
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Worksheet View UX Directions</title>
+    <style>
+      :root {
+        --bg: #f6efe4;
+        --panel: rgba(255, 251, 244, 0.94);
+        --panel-strong: #fffdf8;
+        --line: rgba(28, 31, 40, 0.12);
+        --text: #1e1f29;
+        --muted: #5d6778;
+        --accent: #cf5c36;
+        --accent-soft: rgba(207, 92, 54, 0.12);
+        --ok: #2d8a5a;
+        --ok-soft: rgba(45, 138, 90, 0.12);
+        --warn: #c87a19;
+        --warn-soft: rgba(200, 122, 25, 0.12);
+        --bad: #bb3f3f;
+        --bad-soft: rgba(187, 63, 63, 0.12);
+        --shadow: 0 24px 48px rgba(40, 28, 18, 0.09);
+      }
 
-    * {
-      box-sizing: border-box;
-    }
+      * {
+        box-sizing: border-box;
+      }
 
-    body {
-      margin: 0;
-      font-family: Georgia, "Times New Roman", serif;
-      color: var(--ink);
-      background:
-        radial-gradient(circle at top left, rgba(217, 93, 57, 0.14), transparent 32%),
-        radial-gradient(circle at top right, rgba(43, 108, 176, 0.14), transparent 28%),
-        linear-gradient(180deg, #fbf6ee 0%, var(--bg) 48%, #efe5d8 100%);
-    }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(207, 92, 54, 0.12), transparent 20%),
+          radial-gradient(circle at top right, rgba(28, 120, 185, 0.08), transparent 24%),
+          linear-gradient(180deg, #fcf7f1 0%, #f4ece0 55%, #eee2d2 100%);
+      }
 
-    .shell {
-      width: min(1200px, calc(100% - 32px));
-      margin: 24px auto 48px;
-    }
+      main {
+        width: min(1380px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 28px 0 42px;
+      }
 
-    .hero {
-      padding: 28px;
-      border: 1px solid var(--line);
-      border-radius: 28px;
-      background: linear-gradient(135deg, rgba(255,255,255,0.86), rgba(255,248,239,0.9));
-      box-shadow: var(--shadow);
-    }
+      h1, h2, h3, h4, p {
+        margin: 0;
+      }
 
-    .eyebrow {
-      display: inline-block;
-      padding: 6px 12px;
-      border-radius: 999px;
-      background: var(--accent-soft);
-      color: var(--accent);
-      font-size: 12px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
+      .eyebrow {
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-size: 12px;
+        margin-bottom: 10px;
+      }
 
-    h1,
-    h2,
-    h3 {
-      margin: 0;
-      font-weight: 700;
-    }
+      .hero {
+        display: grid;
+        gap: 12px;
+        margin-bottom: 28px;
+      }
 
-    h1 {
-      margin-top: 16px;
-      font-size: clamp(2rem, 4vw, 3.5rem);
-      line-height: 1.02;
-      max-width: 9ch;
-    }
+      .hero h1 {
+        font-size: clamp(36px, 6vw, 62px);
+        line-height: 0.95;
+        max-width: 12ch;
+      }
 
-    .hero p {
-      max-width: 68ch;
-      margin: 16px 0 0;
-      color: var(--muted);
-      font-size: 1.05rem;
-      line-height: 1.6;
-    }
+      .hero p {
+        color: var(--muted);
+        max-width: 78ch;
+        font-size: 18px;
+        line-height: 1.55;
+      }
 
-    .grid {
-      display: grid;
-      grid-template-columns: 1.3fr 0.9fr;
-      gap: 20px;
-      margin-top: 20px;
-    }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+      }
 
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      padding: 22px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(12px);
-    }
+      .option {
+        border: 1px solid var(--line);
+        background: var(--panel);
+        border-radius: 28px;
+        box-shadow: var(--shadow);
+        padding: 20px;
+        display: grid;
+        gap: 18px;
+      }
 
-    .stack {
-      display: grid;
-      gap: 18px;
-      margin-top: 18px;
-    }
+      .option-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
 
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-      margin-top: 18px;
-    }
+      .option-tag {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-weight: 800;
+      }
 
-    .card {
-      padding: 16px;
-      border-radius: 18px;
-      border: 1px solid var(--line);
-      background: var(--panel-strong);
-    }
+      .option-title {
+        font-size: 26px;
+      }
 
-    .card h3 {
-      font-size: 1rem;
-      margin-bottom: 8px;
-    }
+      .option-copy {
+        color: var(--muted);
+        line-height: 1.5;
+      }
 
-    .card p,
-    li {
-      color: var(--muted);
-      line-height: 1.55;
-      margin: 0;
-      font-size: 0.97rem;
-    }
+      .mock {
+        border: 1px solid rgba(28, 31, 40, 0.08);
+        border-radius: 24px;
+        background: white;
+        padding: 16px;
+        display: grid;
+        gap: 12px;
+      }
 
-    ul {
-      margin: 12px 0 0;
-      padding-left: 18px;
-    }
+      .mock-title {
+        font-size: 13px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
 
-    .flow {
-      display: grid;
-      gap: 12px;
-      margin-top: 16px;
-    }
+      .sheet-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        gap: 12px;
+      }
 
-    .flow-step {
-      padding: 14px 16px;
-      border-left: 4px solid var(--accent);
-      border-radius: 14px;
-      background: rgba(255,255,255,0.68);
-    }
+      .status-strip {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
 
-    .flow-step strong {
-      display: block;
-      margin-bottom: 6px;
-      font-size: 0.98rem;
-    }
+      .pill {
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 700;
+        background: #f7efe5;
+        border: 1px solid rgba(28, 31, 40, 0.08);
+      }
 
-    .pill-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 16px;
-    }
+      .pill.ok {
+        background: var(--ok-soft);
+        color: var(--ok);
+      }
 
-    .pill {
-      padding: 8px 12px;
-      border-radius: 999px;
-      background: rgba(43, 108, 176, 0.1);
-      color: var(--accent-2);
-      font-size: 0.92rem;
-    }
+      .pill.warn {
+        background: var(--warn-soft);
+        color: var(--warn);
+      }
 
-    .decision {
-      margin-top: 18px;
-      padding: 18px;
-      border-radius: 20px;
-      border: 1px dashed rgba(31, 36, 48, 0.2);
-      background: rgba(255,255,255,0.52);
-    }
+      .pill.bad {
+        background: var(--bad-soft);
+        color: var(--bad);
+      }
 
-    .decision strong {
-      color: var(--ok);
-      display: inline-block;
-      margin-bottom: 8px;
-    }
+      .workspace,
+      .workspace-tight,
+      .workspace-focus {
+        display: grid;
+        gap: 12px;
+      }
 
-    .mini-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
-      margin-top: 16px;
-    }
+      .workspace {
+        grid-template-columns: 1.15fr 0.85fr;
+      }
 
-    .tag {
-      display: inline-block;
-      margin-bottom: 10px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #fff;
-      background: var(--warn);
-    }
-
-    .footer-note {
-      margin-top: 20px;
-      font-size: 0.92rem;
-      color: var(--muted);
-    }
-
-    @media (max-width: 920px) {
-      .grid,
-      .cards,
-      .mini-grid {
+      .workspace-tight {
         grid-template-columns: 1fr;
       }
-    }
-  </style>
-</head>
-<body>
-  <main class="shell">
-    <section class="hero">
-      <span class="eyebrow">Visual Companion</span>
-      <h1>Math worksheet builder for families, teachers, and students.</h1>
-      <p>
-        This board turns the product brief into a concrete v1 shape: a printable worksheet generator,
-        saved solving sessions, personal stats, and competitive leaderboards backed by PostgreSQL and
-        secured with Google OAuth.
-      </p>
-      <div class="pill-row">
-        <span class="pill">Vue 3 + Vite frontend</span>
-        <span class="pill">Node + Express API</span>
-        <span class="pill">PostgreSQL relational schema</span>
-        <span class="pill">Google Sign-In</span>
-        <span class="pill">Print-first worksheet UX</span>
-      </div>
-    </section>
 
-    <section class="grid">
-      <div class="stack">
-        <article class="panel">
-          <h2>Primary User Flow</h2>
-          <div class="flow">
-            <div class="flow-step">
-              <strong>1. Discover and sign in</strong>
-              Landing page explains the product, demo worksheet visuals, and Google login.
+      .workspace-focus {
+        grid-template-columns: 1fr;
+      }
+
+      .main-sheet,
+      .inspector,
+      .footer-submit,
+      .progress-bar,
+      .answer-cell,
+      .summary-block {
+        border-radius: 20px;
+      }
+
+      .main-sheet,
+      .inspector,
+      .footer-submit {
+        border: 1px solid rgba(28, 31, 40, 0.08);
+        background: var(--panel-strong);
+        padding: 14px;
+      }
+
+      .progress-bar {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+
+      .summary-block {
+        padding: 10px 12px;
+        background: #fbf6ef;
+        border: 1px solid rgba(28, 31, 40, 0.08);
+      }
+
+      .summary-block strong {
+        display: block;
+        margin-top: 6px;
+      }
+
+      .sheet-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .answer-cell {
+        border: 1px solid rgba(28, 31, 40, 0.08);
+        padding: 12px;
+        background: #fff;
+        display: grid;
+        gap: 10px;
+      }
+
+      .answer-cell strong {
+        font-size: 20px;
+      }
+
+      .answer-input {
+        min-height: 46px;
+        border-radius: 14px;
+        border: 1px solid rgba(28, 31, 40, 0.12);
+        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+        font-weight: 700;
+      }
+
+      .answer-input.correct {
+        border-color: rgba(45, 138, 90, 0.35);
+        background: var(--ok-soft);
+        color: var(--ok);
+      }
+
+      .answer-input.pending {
+        border-style: dashed;
+        background: #fffaf2;
+        color: var(--warn);
+      }
+
+      .answer-input.wrong {
+        border-color: rgba(187, 63, 63, 0.38);
+        background: var(--bad-soft);
+        color: var(--bad);
+      }
+
+      .inspector {
+        display: grid;
+        gap: 12px;
+      }
+
+      .inspector-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .inspector-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: 16px;
+        background: #fbf6ef;
+        border: 1px solid rgba(28, 31, 40, 0.08);
+        font-size: 14px;
+      }
+
+      .footer-submit {
+        display: grid;
+        gap: 12px;
+      }
+
+      .cta-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .button {
+        padding: 12px 18px;
+        border-radius: 999px;
+        background: var(--accent);
+        color: white;
+        font-weight: 800;
+        font-size: 15px;
+      }
+
+      ul {
+        margin: 0;
+        padding-left: 18px;
+        color: var(--muted);
+        display: grid;
+        gap: 8px;
+      }
+
+      .cta {
+        margin-top: 28px;
+        color: var(--muted);
+        font-size: 16px;
+      }
+
+      @media (max-width: 1100px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <p class="eyebrow">Worksheet View Redesign</p>
+        <h1>Three stronger ways to make solving feel clearer.</h1>
+        <p>
+          The current worksheet page works, but the hierarchy is weak. These directions focus on automatic progress
+          saving, a calmer solving surface, easier scanning for wrong versus unfinished answers, and a submit action
+          that feels like a deliberate final step instead of just another header button.
+        </p>
+      </section>
+
+      <section class="grid">
+        <article class="option">
+          <div class="option-header">
+            <div class="option-tag">A</div>
+            <h2 class="option-title">Studio + Inspector</h2>
+          </div>
+          <p class="option-copy">
+            Split the screen into a main solving area and a right-side progress inspector. Auto-save status lives in the
+            inspector, and submit moves to a bottom review panel.
+          </p>
+          <div class="mock">
+            <div class="mock-title">Best for desktop focus</div>
+            <div class="workspace">
+              <div class="main-sheet">
+                <div class="sheet-header">
+                  <div>
+                    <div class="eyebrow" style="margin:0 0 6px;">Worksheet</div>
+                    <h3>Easy practice</h3>
+                  </div>
+                  <div class="status-strip">
+                    <span class="pill ok">Saved just now</span>
+                    <span class="pill">12 problems</span>
+                  </div>
+                </div>
+                <div class="sheet-grid">
+                  <div class="answer-cell">
+                    <strong>8 + 2 =</strong>
+                    <div class="answer-input correct">10</div>
+                  </div>
+                  <div class="answer-cell">
+                    <strong>9 - 4 =</strong>
+                    <div class="answer-input pending">Still empty</div>
+                  </div>
+                  <div class="answer-cell">
+                    <strong>6 + 5 =</strong>
+                    <div class="answer-input wrong">12</div>
+                  </div>
+                  <div class="answer-cell">
+                    <strong>7 + 1 =</strong>
+                    <div class="answer-input correct">8</div>
+                  </div>
+                </div>
+              </div>
+              <aside class="inspector">
+                <h4>Progress</h4>
+                <div class="progress-bar">
+                  <div class="summary-block">
+                    Done
+                    <strong>8</strong>
+                  </div>
+                  <div class="summary-block">
+                    Empty
+                    <strong>3</strong>
+                  </div>
+                  <div class="summary-block">
+                    Review
+                    <strong>1</strong>
+                  </div>
+                </div>
+                <div class="inspector-list">
+                  <div class="inspector-item"><span>Auto-save</span><strong>On every edit</strong></div>
+                  <div class="inspector-item"><span>Unfilled answers</span><strong>Amber dashed</strong></div>
+                  <div class="inspector-item"><span>Wrong answers</span><strong>Red tinted</strong></div>
+                </div>
+              </aside>
             </div>
-            <div class="flow-step">
-              <strong>2. Generate worksheet</strong>
-              User picks count, difficulty, operations, number ranges, and worksheet size.
-            </div>
-            <div class="flow-step">
-              <strong>3. Solve and save progress</strong>
-              Answers are editable, auto-saved manually or explicitly saved as draft/partial.
-            </div>
-            <div class="flow-step">
-              <strong>4. Submit for scoring</strong>
-              Backend evaluates correctness, stores per-question results, updates stats.
-            </div>
-            <div class="flow-step">
-              <strong>5. Compare and review</strong>
-              Dashboard shows history, streak-like activity, and daily/weekly/monthly leaderboards.
+            <div class="footer-submit">
+              <div class="cta-row">
+                <div>
+                  <h4>Review before submitting</h4>
+                  <p style="color:var(--muted);margin-top:4px;">Submit sits below the worksheet after the learner sees what still needs attention.</p>
+                </div>
+                <div class="button">Submit worksheet</div>
+              </div>
             </div>
           </div>
-        </article>
-
-        <article class="panel">
-          <h2>Recommended v1 Architecture</h2>
-          <div class="cards">
-            <div class="card">
-              <h3>Client App</h3>
-              <p>Vue Router, Pinia, composables for auth/API state, print-friendly worksheet templates.</p>
-            </div>
-            <div class="card">
-              <h3>API Layer</h3>
-              <p>Express routes with auth middleware, validation, worksheet generation service, stats queries.</p>
-            </div>
-            <div class="card">
-              <h3>Data Layer</h3>
-              <p>Normalized PostgreSQL tables with aggregate-friendly indexes and leaderboard SQL views.</p>
-            </div>
-          </div>
-          <div class="decision">
-            <strong>Recommendation</strong>
-            Use JWT access tokens with secure HTTP-only refresh-token cookies. This keeps the frontend simple,
-            supports Google OAuth cleanly, and avoids storing long-lived bearer tokens in local storage.
-          </div>
-        </article>
-      </div>
-
-      <div class="stack">
-        <article class="panel">
-          <h2>Pages in Scope</h2>
           <ul>
-            <li>Landing page</li>
-            <li>Login / auth callback</li>
-            <li>Dashboard</li>
-            <li>Worksheet generator</li>
-            <li>Worksheet solving</li>
-            <li>Saved worksheets</li>
-            <li>Leaderboard</li>
-            <li>User stats / profile</li>
+            <li>Strongest information hierarchy</li>
+            <li>Auto-save feels visible and reassuring</li>
+            <li>Needs a thoughtful mobile collapse</li>
           </ul>
         </article>
 
-        <article class="panel">
-          <h2>Data Highlights</h2>
-          <div class="mini-grid">
-            <div class="card">
-              <span class="tag">Relational</span>
-              <p>`users`, `worksheets`, `worksheet_questions`, `worksheet_attempts`, `user_statistics`.</p>
-            </div>
-            <div class="card">
-              <span class="tag">Analytics</span>
-              <p>Daily activity rollups and leaderboard views for worksheet count, solved count, and accuracy.</p>
+        <article class="option">
+          <div class="option-header">
+            <div class="option-tag">B</div>
+            <h2 class="option-title">Single-Column Review Flow</h2>
+          </div>
+          <p class="option-copy">
+            Everything stays in one vertical lane: worksheet info, solve area, then a review-and-submit block. Cleaner
+            on mobile and easier for younger students.
+          </p>
+          <div class="mock">
+            <div class="mock-title">Best for simplicity</div>
+            <div class="workspace-tight">
+              <div class="main-sheet">
+                <div class="sheet-header">
+                  <div>
+                    <div class="eyebrow" style="margin:0 0 6px;">Worksheet</div>
+                    <h3>Easy practice</h3>
+                  </div>
+                  <span class="pill ok">Saving automatically</span>
+                </div>
+                <div class="progress-bar" style="margin-top:12px;">
+                  <div class="summary-block">Answered<strong>8</strong></div>
+                  <div class="summary-block">Unfilled<strong>3</strong></div>
+                  <div class="summary-block">Needs fix<strong>1</strong></div>
+                </div>
+                <div class="sheet-grid" style="margin-top:12px;">
+                  <div class="answer-cell">
+                    <strong>8 + 2 =</strong>
+                    <div class="answer-input correct">10</div>
+                  </div>
+                  <div class="answer-cell">
+                    <strong>9 - 4 =</strong>
+                    <div class="answer-input pending">Still empty</div>
+                  </div>
+                  <div class="answer-cell">
+                    <strong>6 + 5 =</strong>
+                    <div class="answer-input wrong">12</div>
+                  </div>
+                  <div class="answer-cell">
+                    <strong>7 + 1 =</strong>
+                    <div class="answer-input correct">8</div>
+                  </div>
+                </div>
+              </div>
+              <div class="footer-submit">
+                <div class="inspector-list">
+                  <div class="inspector-item"><span>Auto-save</span><strong>Every change</strong></div>
+                  <div class="inspector-item"><span>Before submit</span><strong>Highlight empty + incorrect</strong></div>
+                </div>
+                <div class="cta-row">
+                  <p style="color:var(--muted);max-width:36ch;">Submit lives at the bottom so the learner naturally scrolls through the whole sheet first.</p>
+                  <div class="button">Submit worksheet</div>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="footer-note">
-            We can use this board to compare layout directions later, but for now it’s mainly our shared map for the first implementation pass.
-          </div>
+          <ul>
+            <li>Most natural on phones and tablets</li>
+            <li>Fewer layout decisions to maintain</li>
+            <li>Less powerful status area than A</li>
+          </ul>
         </article>
-      </div>
-    </section>
-  </main>
-</body>
+
+        <article class="option">
+          <div class="option-header">
+            <div class="option-tag">C</div>
+            <h2 class="option-title">Question Navigator</h2>
+          </div>
+          <p class="option-copy">
+            Add a compact answer navigator so learners can jump to empty or incorrect questions. Best when worksheets
+            get longer and review matters more.
+          </p>
+          <div class="mock">
+            <div class="mock-title">Best for review-heavy solving</div>
+            <div class="workspace-focus">
+              <div class="main-sheet">
+                <div class="sheet-header">
+                  <div>
+                    <div class="eyebrow" style="margin:0 0 6px;">Worksheet</div>
+                    <h3>Easy practice</h3>
+                  </div>
+                  <span class="pill ok">Auto-saved</span>
+                </div>
+                <div class="status-strip" style="margin-top:12px;">
+                  <span class="pill ok">1</span>
+                  <span class="pill ok">2</span>
+                  <span class="pill bad">3</span>
+                  <span class="pill warn">4</span>
+                  <span class="pill ok">5</span>
+                  <span class="pill warn">6</span>
+                </div>
+                <div class="sheet-grid" style="margin-top:12px;">
+                  <div class="answer-cell">
+                    <strong>6 + 5 =</strong>
+                    <div class="answer-input wrong">12</div>
+                  </div>
+                  <div class="answer-cell">
+                    <strong>9 - 4 =</strong>
+                    <div class="answer-input pending">Still empty</div>
+                  </div>
+                </div>
+              </div>
+              <div class="footer-submit">
+                <div class="progress-bar">
+                  <div class="summary-block">Correct<strong>8</strong></div>
+                  <div class="summary-block">Wrong<strong>1</strong></div>
+                  <div class="summary-block">Empty<strong>3</strong></div>
+                </div>
+                <div class="cta-row">
+                  <div>
+                    <h4>Finish after review</h4>
+                    <p style="color:var(--muted);margin-top:4px;">The navigator makes missed answers very obvious before submit.</p>
+                  </div>
+                  <div class="button">Submit worksheet</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <ul>
+            <li>Strongest review support for big worksheets</li>
+            <li>Very clear wrong versus empty states</li>
+            <li>Adds more UI than you may want in v1</li>
+          </ul>
+        </article>
+      </section>
+
+      <p class="cta">
+        Open this page and tell me which direction feels right:
+        <strong>A</strong>, <strong>B</strong>, <strong>C</strong>, or a blend like <strong>A + B</strong>.
+        My recommendation is <strong>A + B</strong>: the clarity of the inspector with the straightforward bottom submit flow.
+      </p>
+    </main>
+  </body>
 </html>

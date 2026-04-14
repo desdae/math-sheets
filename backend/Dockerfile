@@ -6,7 +6,8 @@ COPY package.json package-lock.json ./
 COPY backend/package.json backend/package.json
 COPY scripts/docker-dev-bootstrap.sh /usr/local/bin/docker-dev-bootstrap.sh
 
-RUN chmod +x /usr/local/bin/docker-dev-bootstrap.sh
+RUN sed -i 's/\r$//' /usr/local/bin/docker-dev-bootstrap.sh \
+  && chmod +x /usr/local/bin/docker-dev-bootstrap.sh
 RUN npm install --workspace backend
 
 COPY backend ./backend

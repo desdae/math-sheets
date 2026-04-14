@@ -132,4 +132,12 @@ describe("WorksheetView", () => {
 
     expect(wrapper.get('[data-testid="worksheet-live-timer"]').text()).toContain("Time: 00:03");
   });
+
+  it("renders each answer as a compact row with a shared layout hook for mobile", () => {
+    const wrapper = mount(WorksheetView);
+
+    expect(wrapper.find('[data-testid="answer-row-1"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="answer-row-1"]').find("label").text()).toBe("2 + 3 =");
+    expect(wrapper.find('[data-testid="answer-row-1"]').find("input").exists()).toBe(true);
+  });
 });
