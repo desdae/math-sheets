@@ -148,8 +148,13 @@ The Docker Compose frontend and backend services are configured for development 
 
 - frontend changes under `frontend/` should update through Vite HMR on `http://localhost:5180`
 - backend changes under `backend/` should restart the Express server through `tsx watch`
+- if `package-lock.json` changes, the dev containers now reinstall the affected workspace dependencies automatically on next start
 
-If you change dependencies in `package.json`, rebuild the containers:
+You still need `docker compose up --build` after Dockerfile changes or base-image changes, but not just for normal npm dependency additions.
+
+If a dependency install fails during container startup, the container will exit and the logs will show the npm error. Fix the dependency issue, then start the service again.
+
+If you make Dockerfile changes, rebuild the containers:
 
 ```bash
 docker compose up --build
