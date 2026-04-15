@@ -5,13 +5,61 @@
       <slot />
     </main>
     <AppFooter @open-consent="isConsentPreferencesOpen = true" />
+    <CookieConsentBanner
+      :visible="showConsentBanner"
+      @accept="acceptAll"
+      @manage="isConsentPreferencesOpen = true"
+      @reject="rejectNonEssential"
+    />
+    <CookiePreferencesModal
+      :consent="consent"
+      :open="isConsentPreferencesOpen"
+      @close="isConsentPreferencesOpen = false"
+      @save="savePreferences"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
+import {
+  createAcceptAllConsent,
+  createRejectNonEssentialConsent,
+  getStoredConsent,
+  saveConsent,
+  type ConsentState
+} from "../../lib/consent";
+import CookieConsentBanner from "../legal/CookieConsentBanner.vue";
+import CookiePreferencesModal from "../legal/CookiePreferencesModal.vue";
 import AppFooter from "./AppFooter.vue";
 import AppHeader from "./AppHeader.vue";
 
 const isConsentPreferencesOpen = ref(false);
+const consent = ref<ConsentState | null>(getStoredConsent());
+const showConsentBanner = computed(() => consent.value === null && !isConsentPreferencesOpen.value);
+
+function refreshConsentState() {
+  consent.value = getStoredConsent();
+}
+
+function acceptAll() {
+  saveConsent(createAcceptAllConsent());
+  refreshConsentState();
+}
+
+function rejectNonEssential() {
+  saveConsent(createRejectNonEssentialConsent());
+  refreshConsentState();
+}
+
+function savePreferences(selection: { analytics: boolean; advertising: boolean }) {
+  saveConsent({
+    ...(consent.value ?? createRejectNonEssentialConsent()),
+    analytics: selection.analytics,
+    advertising: selection.advertising,
+    timestamp: new Date().toISOString()
+  });
+  refreshConsentState();
+  isConsentPreferencesOpen.value = false;
+}
 </script>

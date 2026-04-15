@@ -6,6 +6,7 @@ import { router } from "../router";
 
 describe("legal routes and footer", () => {
   beforeEach(async () => {
+    localStorage.clear();
     setActivePinia(createPinia());
     await router.push("/privacy");
     await router.isReady();
@@ -27,5 +28,54 @@ describe("legal routes and footer", () => {
     expect(wrapper.text()).toContain("Privacy Policy");
     expect(wrapper.text()).toContain("Terms of Service");
     expect(wrapper.text()).toContain("Privacy & cookies");
+  });
+
+  it("shows the banner on first visit and saves reject-non-essential choices", async () => {
+    localStorage.clear();
+
+    const wrapper = mount(AppShell, {
+      global: {
+        plugins: [router, createPinia()]
+      },
+      slots: {
+        default: "<div>Page</div>"
+      }
+    });
+
+    expect(wrapper.text()).toContain("Cookies and privacy choices");
+
+    await wrapper.get('[data-testid="reject-non-essential"]').trigger("click");
+
+    expect(localStorage.getItem("mathsheets-consent")).toContain('"analytics":false');
+    expect(localStorage.getItem("mathsheets-consent")).toContain('"advertising":false');
+  });
+
+  it("reopens preferences from the footer and updates optional consent", async () => {
+    localStorage.setItem(
+      "mathsheets-consent",
+      JSON.stringify({
+        version: "2026-04-15",
+        timestamp: "2026-04-15T10:00:00.000Z",
+        necessary: true,
+        anonymousMeasurement: true,
+        analytics: false,
+        advertising: false
+      })
+    );
+
+    const wrapper = mount(AppShell, {
+      global: {
+        plugins: [router, createPinia()]
+      },
+      slots: {
+        default: "<div>Page</div>"
+      }
+    });
+
+    await wrapper.get('[data-testid="open-consent-preferences"]').trigger("click");
+    await wrapper.get('input[name="analytics"]').setValue(true);
+    await wrapper.get('[data-testid="save-consent-preferences"]').trigger("click");
+
+    expect(localStorage.getItem("mathsheets-consent")).toContain('"analytics":true');
   });
 });
