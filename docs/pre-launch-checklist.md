@@ -45,9 +45,11 @@ Use this checklist before publishing MathSheets on a real web domain.
 
 ## Product and Compliance
 
-- [ ] Add a Privacy Policy
-- [ ] Add Terms of Service
+- [x] Add a Privacy Policy
+- [x] Add Terms of Service
+- [x] Add client-side consent controls for non-essential cookies
 - [ ] Clearly explain public nickname and leaderboard visibility in the UI
+- [ ] Review final legal text with your own legal and business requirements before public launch
 - [ ] Review child and student privacy requirements if relevant
 
 ## Deployment

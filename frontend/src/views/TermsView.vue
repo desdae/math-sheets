@@ -8,13 +8,23 @@
     </p>
     <section class="legal-section">
       <h2>Acceptable use</h2>
-      <p>Do not misuse the service, attempt to disrupt other users, or abuse sign-in, leaderboard, or worksheet features.</p>
+      <p>
+        You may not misuse MathSheets, interfere with other users, automate abusive traffic, or attempt to bypass account,
+        worksheet, or leaderboard protections.
+      </p>
     </section>
     <section class="legal-section">
       <h2>Availability and liability</h2>
       <p>
-        MathSheets is provided as-is without a guarantee of uninterrupted service, and liability is limited to the maximum
-        extent allowed by law.
+        MathSheets is provided on an as-is basis. We may change or pause the service, and we do not guarantee uninterrupted
+        access or error-free operation.
+      </p>
+    </section>
+    <section class="legal-section">
+      <h2>Changes to the service</h2>
+      <p>
+        We may update these terms, change app features, or discontinue parts of the service over time. Continued use of the
+        service means you accept the latest published version.
       </p>
     </section>
   </section>

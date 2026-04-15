@@ -6,6 +6,8 @@ Worksheets auto-save while in progress, highlight unanswered problems before sub
 
 Google is used only for authentication. The app keeps Google account details private on the backend and exposes only a user-chosen public nickname to the frontend and leaderboard surfaces.
 
+Public legal pages are available at `/privacy` and `/terms`. Cookie and storage preferences are managed in-app through the `Privacy & cookies` controls in the site footer, and consent is re-requested when the consent version changes.
+
 ## Tech stack
 
 - Frontend: Vue 3, Vite, Pinia, Vue Router, Vitest

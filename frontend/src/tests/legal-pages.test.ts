@@ -78,4 +78,36 @@ describe("legal routes and footer", () => {
 
     expect(localStorage.getItem("mathsheets-consent")).toContain('"analytics":true');
   });
+
+  it("renders privacy and terms content sections", async () => {
+    await router.push("/privacy");
+    await router.isReady();
+
+    const privacyWrapper = mount(
+      { template: "<RouterView />" },
+      {
+        global: {
+          plugins: [router, createPinia()]
+        }
+      }
+    );
+
+    expect(privacyWrapper.text()).toContain("Google sign-in");
+    expect(privacyWrapper.text()).toContain("Cookies and browser storage");
+    expect(privacyWrapper.text()).toContain("Advertising / personalization");
+
+    await router.push("/terms");
+
+    const termsWrapper = mount(
+      { template: "<RouterView />" },
+      {
+        global: {
+          plugins: [router, createPinia()]
+        }
+      }
+    );
+
+    expect(termsWrapper.text()).toContain("Acceptable use");
+    expect(termsWrapper.text()).toContain("Availability and liability");
+  });
 });
