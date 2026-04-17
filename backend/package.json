@@ -7,7 +7,11 @@
     "build": "tsc -p tsconfig.json",
     "test": "vitest run",
     "migrate": "tsx src/db/migrate.ts",
-    "seed": "tsx src/db/seed.ts"
+    "seed": "tsx src/db/seed.ts",
+    "cf:dev": "wrangler dev",
+    "cf:dev:remote": "wrangler dev --remote",
+    "cf:deploy": "wrangler deploy",
+    "cf:typegen": "wrangler types"
   },
   "dependencies": {
     "cookie-parser": "^1.4.7",
@@ -32,6 +36,7 @@
     "supertest": "^7.1.4",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "wrangler": "^4.44.0"
   }
 }

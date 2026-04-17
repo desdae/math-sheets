@@ -8,12 +8,14 @@ const hasPlaceholderGoogleConfig = () =>
 export const isGoogleOAuthConfigured = () =>
   Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET && !hasPlaceholderGoogleConfig());
 
-const googleClient =
+const createGoogleClient = () =>
   isGoogleOAuthConfigured()
     ? new OAuth2Client(env.GOOGLE_CLIENT_ID, env.GOOGLE_CLIENT_SECRET, env.GOOGLE_CALLBACK_URL)
     : null;
 
 export const exchangeCodeForGoogleProfile = async (code: string): Promise<GoogleProfile> => {
+  const googleClient = createGoogleClient();
+
   if (!googleClient) {
     throw new Error("Google OAuth is not configured");
   }

@@ -1,0 +1,23 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "mathsheets-api",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-04-17",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "NODE_ENV": "production",
+    "APP_BASE_URL": "https://app.mathsheets.example",
+    "GOOGLE_CALLBACK_URL": "https://api.mathsheets.example/api/auth/google/callback",
+    "COOKIE_DOMAIN": ".mathsheets.example"
+  },
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "paste-the-id-returned-by-wrangler-hyperdrive-create",
+      "localConnectionString": "postgres://postgres:postgres@localhost:5433/mathsheets"
+    }
+  ]
+}

@@ -226,21 +226,67 @@ Production note:
 - keep `VITE_API_BASE_URL` set when serving the frontend from a different origin than the API
 - if you deploy the frontend and API under the same origin, you can omit `VITE_API_BASE_URL` and the app will use `/api`
 
+## Cloudflare deployment
+
+MathSheets is prepared for a split Cloudflare deployment:
+
+- `frontend/` deploys independently as a static Vite application
+- `backend/` deploys independently as a Cloudflare Worker
+- PostgreSQL remains the system of record and is accessed from the Worker through Hyperdrive
+
+### Backend Worker setup
+
+From `backend/`:
+
+```bash
+npm install
+npm run cf:typegen
+npm run cf:deploy
+```
+
+Before the first deploy:
+
+1. Create a Hyperdrive configuration against your real hosted PostgreSQL database:
+
+```bash
+npm --workspace backend exec wrangler hyperdrive create mathsheets-db --connection-string="postgres://user:password@host:5432/database"
+```
+
+2. Copy the returned Hyperdrive ID into `backend/wrangler.jsonc`
+3. Set Worker secrets for `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, and `GOOGLE_CLIENT_SECRET`
+4. Set Worker vars for `APP_BASE_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CALLBACK_URL`, and `COOKIE_DOMAIN`
+
+### Frontend deployment
+
+Deploy the frontend separately and set:
+
+```env
+VITE_API_BASE_URL=https://api.mathsheets.example/api
+```
+
+### OAuth and cookies
+
+For split deployments:
+
+- use the real frontend hostname as the Google OAuth JavaScript origin
+- use the real API hostname for `GOOGLE_CALLBACK_URL`
+- verify cookie and CORS behavior against your production subdomains before launch
+
 ## Production hardening
 
 Current recommended production deployment:
 
-- serve the frontend and backend from the same origin
+- deploy the frontend and backend independently
 - terminate traffic over HTTPS only
-- let the frontend call the API through `/api`
+- set `VITE_API_BASE_URL` explicitly for the frontend
 
-For this same-origin setup, backend auth cookies are now intentionally configured as:
+Backend auth cookies are currently configured as:
 
 - `HttpOnly`
 - `SameSite=Lax`
 - `Secure` in production
 
-If you later split the frontend and API onto different origins or subdomains, revisit the auth cookie and CORS configuration before launch.
+If you deploy the frontend and API onto different origins or subdomains, validate the cookie and CORS settings against your production hostnames before launch.
 
 ## Available scripts
 
