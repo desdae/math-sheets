@@ -11,6 +11,7 @@
     "cf:dev": "wrangler dev",
     "cf:dev:remote": "wrangler dev --remote",
     "cf:deploy": "wrangler deploy",
+    "cf:deploy:build": "tsx src/deploy.ts",
     "cf:typegen": "wrangler types"
   },
   "dependencies": {
