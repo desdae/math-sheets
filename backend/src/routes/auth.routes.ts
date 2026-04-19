@@ -18,7 +18,7 @@ export const authRouter = Router();
 const oauthStateCookieName = "mathsheets_oauth_state";
 const getOAuthStateCookieOptions = () => ({
   httpOnly: true,
-  sameSite: "lax" as const,
+  sameSite: (env.NODE_ENV === "production" ? "none" : "lax") as "none" | "lax",
   secure: env.NODE_ENV === "production",
   path: "/api/auth"
 });

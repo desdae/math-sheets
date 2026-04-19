@@ -193,7 +193,7 @@ describe("google oauth security", () => {
     expect(cookieHeader).toContain("HttpOnly");
     expect(cookieHeader).toContain("Secure");
     expect(cookieHeader).toContain("Path=/api/auth");
-    expect(cookieHeader).toContain("SameSite=Lax");
+    expect(cookieHeader).toContain("SameSite=None");
   });
 
   it("returns 401 when the refresh cookie is missing", async () => {
