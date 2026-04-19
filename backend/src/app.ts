@@ -14,6 +14,7 @@ import { worksheetRouter } from "./routes/worksheet.routes.js";
 
 export const createApp = () => {
   const app = express();
+  app.disable("etag");
 
   if (env.NODE_ENV === "production") {
     app.set("trust proxy", 1);

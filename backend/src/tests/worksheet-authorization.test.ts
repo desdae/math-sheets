@@ -50,6 +50,7 @@ describe("worksheet ownership enforcement", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers["cache-control"]).toContain("no-store");
+    expect(response.headers.etag).toBeUndefined();
   });
 
   it("passes the signed-in user id into worksheet save operations", async () => {
