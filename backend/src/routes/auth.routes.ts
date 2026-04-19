@@ -16,15 +16,24 @@ import {
 
 export const authRouter = Router();
 const oauthStateCookieName = "mathsheets_oauth_state";
-const getAuthCookieOptions = () => ({
+const getOAuthStateCookieOptions = () => ({
   httpOnly: true,
   sameSite: "lax" as const,
+  secure: env.NODE_ENV === "production",
+  path: "/api/auth"
+});
+const getRefreshCookieOptions = () => ({
+  httpOnly: true,
+  sameSite: (env.NODE_ENV === "production" ? "none" : "lax") as "none" | "lax",
   secure: env.NODE_ENV === "production",
   path: "/api/auth"
 });
 const authCookieClearOptions = {
   path: "/api/auth"
 };
+
+const isRefreshTokenAuthError = (error: unknown) =>
+  error instanceof Error && (error.message === "Missing refresh token" || error.message === "Refresh token is invalid");
 
 authRouter.get("/google", (_req, res) => {
   if (!isGoogleOAuthConfigured()) {
@@ -33,7 +42,7 @@ authRouter.get("/google", (_req, res) => {
 
   const state = randomBytes(24).toString("hex");
 
-  res.cookie(oauthStateCookieName, state, getAuthCookieOptions());
+  res.cookie(oauthStateCookieName, state, getOAuthStateCookieOptions());
 
   const params = new URLSearchParams({
     client_id: env.GOOGLE_CLIENT_ID,
@@ -64,7 +73,7 @@ authRouter.get(
     const user = await findOrCreateUserFromGoogleProfile(profile);
     const { refreshToken } = await issueSessionTokens(user.id);
 
-    res.cookie(refreshCookieName, refreshToken, getAuthCookieOptions());
+    res.cookie(refreshCookieName, refreshToken, getRefreshCookieOptions());
 
     res.redirect(`${env.APP_BASE_URL}/auth/callback`);
   })
@@ -88,9 +97,19 @@ authRouter.get(
 authRouter.post(
   "/refresh",
   asyncHandler(async (req, res) => {
-    const tokens = await rotateRefreshToken(readRefreshTokenCookie(req));
+    let tokens;
 
-    res.cookie(refreshCookieName, tokens.refreshToken, getAuthCookieOptions());
+    try {
+      tokens = await rotateRefreshToken(readRefreshTokenCookie(req));
+    } catch (error) {
+      if (isRefreshTokenAuthError(error)) {
+        throw new HttpError(401, "Unauthorized");
+      }
+
+      throw error;
+    }
+
+    res.cookie(refreshCookieName, tokens.refreshToken, getRefreshCookieOptions());
 
     res.json({ accessToken: tokens.accessToken });
   })

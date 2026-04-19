@@ -149,6 +149,7 @@ describe("google oauth security", () => {
     expect(cookieHeader).not.toContain("Secure");
     expect(cookieHeader).toContain("HttpOnly");
     expect(cookieHeader).toContain("Path=/api/auth");
+    expect(cookieHeader).toContain("SameSite=Lax");
   });
 
   it("sets refresh cookies with Secure in production", async () => {
@@ -171,6 +172,7 @@ describe("google oauth security", () => {
     expect(cookieHeader).toContain("Secure");
     expect(cookieHeader).toContain("HttpOnly");
     expect(cookieHeader).toContain("Path=/api/auth");
+    expect(cookieHeader).toContain("SameSite=None");
   });
 
   it("sets the oauth state cookie with the same explicit security policy", async () => {
@@ -191,5 +193,15 @@ describe("google oauth security", () => {
     expect(cookieHeader).toContain("HttpOnly");
     expect(cookieHeader).toContain("Secure");
     expect(cookieHeader).toContain("Path=/api/auth");
+    expect(cookieHeader).toContain("SameSite=Lax");
+  });
+
+  it("returns 401 when the refresh cookie is missing", async () => {
+    rotateRefreshTokenMock.mockRejectedValue(new Error("Missing refresh token"));
+
+    const response = await request(createApp()).post("/api/auth/refresh");
+
+    expect(response.status).toBe(401);
+    expect(response.body.message).toBe("Unauthorized");
   });
 });
