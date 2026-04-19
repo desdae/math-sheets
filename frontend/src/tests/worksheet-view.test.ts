@@ -211,4 +211,27 @@ describe("WorksheetView", () => {
     expect(worksheetStore.activeWorksheet?.title).toBe("Recovered Remote Worksheet");
     expect(worksheetStore.activeWorksheet?.answers).toEqual(["12", null]);
   });
+
+  it("flushes worksheet progress on pagehide so refreshes do not drop recent answers", async () => {
+    routeWorksheetId = "remote-worksheet-1";
+    const worksheetStore = useWorksheetStore();
+    worksheetStore.anonymousWorksheets = [];
+    worksheetStore.setActiveWorksheet({
+      ...buildWorksheet(),
+      id: "remote-worksheet-1",
+      source: "remote",
+      questions: buildWorksheet().questions.map((question, index) => ({
+        ...question,
+        id: `question-${index + 1}`
+      }))
+    });
+
+    const flushSpy = vi.spyOn(worksheetStore, "flushActiveWorksheetProgress").mockResolvedValue();
+
+    mount(WorksheetView);
+    window.dispatchEvent(new PageTransitionEvent("pagehide", { persisted: false }));
+    await nextTick();
+
+    expect(flushSpy).toHaveBeenCalledTimes(1);
+  });
 });

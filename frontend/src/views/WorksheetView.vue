@@ -194,6 +194,10 @@ const startTimerInterval = () => {
   }, 1000);
 };
 
+const flushWorksheetProgress = () => {
+  void worksheetStore.flushActiveWorksheetProgress();
+};
+
 const loadWorksheetForRoute = async () => {
   const worksheetId = String(route.params.id);
 
@@ -284,6 +288,7 @@ const loadWorksheetForRoute = async () => {
 };
 
 onMounted(() => {
+  window.addEventListener("pagehide", flushWorksheetProgress);
   void loadWorksheetForRoute();
 });
 
@@ -309,8 +314,9 @@ watch(isCompleted, (completed) => {
 });
 
 onUnmounted(() => {
+  window.removeEventListener("pagehide", flushWorksheetProgress);
   clearTimerInterval();
-  void worksheetStore.flushActiveWorksheetProgress();
+  flushWorksheetProgress();
 });
 
 const confirmSubmitWorksheet = async () => {
