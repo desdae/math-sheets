@@ -3,11 +3,6 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
 
-const currentDir = dirname(fileURLToPath(import.meta.url));
-const dotenvPath = process.env.DOTENV_CONFIG_PATH
-  ? resolve(currentDir, "../../../", process.env.DOTENV_CONFIG_PATH)
-  : resolve(currentDir, "../../../.env");
-
 const runtimeEnvSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().default(3000),
@@ -34,6 +29,14 @@ export type WorkerBindings = Record<string, unknown> & {
 
 let runtimeEnv: RuntimeEnv | null = null;
 
+const getDotenvPath = () => {
+  const currentDir = dirname(fileURLToPath(import.meta.url));
+
+  return process.env.DOTENV_CONFIG_PATH
+    ? resolve(currentDir, "../../../", process.env.DOTENV_CONFIG_PATH)
+    : resolve(currentDir, "../../../.env");
+};
+
 const normalizeSource = (source: Record<string, unknown>) => {
   const databaseUrl =
     typeof source.DATABASE_URL === "string" && source.DATABASE_URL.length > 0
@@ -49,7 +52,7 @@ const normalizeSource = (source: Record<string, unknown>) => {
 };
 
 export const configureNodeEnv = (source: Record<string, unknown> = process.env) => {
-  config({ path: dotenvPath });
+  config({ path: getDotenvPath() });
   runtimeEnv = normalizeSource(source === process.env ? (process.env as Record<string, unknown>) : source);
   return runtimeEnv;
 };
