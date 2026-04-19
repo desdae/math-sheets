@@ -77,6 +77,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import WorksheetCompletionActions from "../components/worksheet/WorksheetCompletionActions.vue";
 import WorksheetGrid from "../components/worksheet/WorksheetGrid.vue";
+import { apiFetch } from "../lib/api";
 import { formatElapsedTime } from "../lib/saved-worksheets";
 import { useAuthStore } from "../stores/auth";
 import { useWorksheetStore } from "../stores/worksheet";
@@ -85,6 +86,7 @@ const route = useRoute();
 const authStore = useAuthStore();
 const worksheetStore = useWorksheetStore();
 const showSubmitConfirm = ref(false);
+const isLoadingRemoteWorksheet = ref(false);
 let timerInterval: ReturnType<typeof setInterval> | null = null;
 
 const worksheet = computed(() => worksheetStore.activeWorksheet);
@@ -192,7 +194,7 @@ const startTimerInterval = () => {
   }, 1000);
 };
 
-onMounted(async () => {
+const loadWorksheetForRoute = async () => {
   const worksheetId = String(route.params.id);
 
   const localWorksheet = worksheetStore.anonymousWorksheets.find((entry) => entry.id === worksheetId);
@@ -202,15 +204,53 @@ onMounted(async () => {
     return;
   }
 
-  if (authStore.user) {
-    const payload = await fetch(`${import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000/api"}/worksheets/${worksheetId}`, {
-      headers: {
-        Authorization: authStore.accessToken ? `Bearer ${authStore.accessToken}` : ""
-      }
-    }).then((response) => response.json());
+  if (worksheetStore.activeWorksheet?.id === worksheetId && worksheetStore.activeWorksheet.source === "remote") {
+    startTimerInterval();
+    return;
+  }
+
+  if (!authStore.user || isLoadingRemoteWorksheet.value) {
+    return;
+  }
+
+  isLoadingRemoteWorksheet.value = true;
+
+  try {
+    const payload = await apiFetch<{
+      worksheet: {
+        id: string;
+        title: string;
+        status: "draft" | "partial" | "completed";
+        problemCount: number;
+        difficulty: "easy" | "medium" | "hard";
+        allowedOperations: Array<"+" | "-" | "*" | "/">;
+        numberRangeMin: number;
+        numberRangeMax: number;
+        worksheetSize: "small" | "medium" | "large";
+        cleanDivisionOnly: boolean;
+        createdAt: string;
+        submittedAt?: string | null;
+        elapsedSeconds?: number | null;
+        result?: {
+          scoreCorrect: number;
+          scoreTotal: number;
+          accuracyPercentage: number;
+        } | null;
+      };
+      questions: Array<{
+        id?: string;
+        questionOrder: number;
+        operation: "+" | "-" | "*" | "/";
+        leftOperand: number;
+        rightOperand: number;
+        displayText: string;
+        correctAnswer: number;
+      }>;
+      answers: Array<{ questionOrder: number; answerText: string | null; isCorrect: boolean | null }>;
+    }>(`/worksheets/${worksheetId}`);
     const mappedAnswers = payload.questions.map(() => null as string | null);
 
-    for (const entry of payload.answers as Array<{ questionOrder: number; answerText: string | null; isCorrect: boolean | null }>) {
+    for (const entry of payload.answers) {
       mappedAnswers[entry.questionOrder - 1] = entry.answerText;
     }
 
@@ -236,10 +276,23 @@ onMounted(async () => {
       elapsedSeconds: Number(payload.worksheet.elapsedSeconds ?? 0),
       result: payload.worksheet.result
     });
+  } finally {
+    isLoadingRemoteWorksheet.value = false;
   }
 
   startTimerInterval();
+};
+
+onMounted(() => {
+  void loadWorksheetForRoute();
 });
+
+watch(
+  () => [route.params.id, authStore.user?.id],
+  () => {
+    void loadWorksheetForRoute();
+  }
+);
 
 watch(unansweredCount, (count) => {
   if (count === 0) {

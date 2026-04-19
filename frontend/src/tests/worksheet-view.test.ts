@@ -3,7 +3,10 @@ import { mount } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 import WorksheetView from "../views/WorksheetView.vue";
+import { useAuthStore } from "../stores/auth";
 import { useWorksheetStore } from "../stores/worksheet";
+
+let routeWorksheetId = "local-worksheet-1";
 
 vi.mock("vue-router", () => ({
   RouterLink: {
@@ -13,7 +16,7 @@ vi.mock("vue-router", () => ({
   },
   useRoute: () => ({
     params: {
-      id: "local-worksheet-1"
+      id: routeWorksheetId
     }
   })
 }));
@@ -48,6 +51,7 @@ const buildWorksheet = () => ({
 describe("WorksheetView", () => {
   beforeEach(() => {
     setActivePinia(createPinia());
+    routeWorksheetId = "local-worksheet-1";
     const worksheetStore = useWorksheetStore();
     worksheetStore.anonymousWorksheets = [buildWorksheet()];
     worksheetStore.setActiveWorksheet(buildWorksheet());
@@ -55,6 +59,7 @@ describe("WorksheetView", () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it("shows unanswered count and does not show wrong-answer state before submit", async () => {
@@ -139,5 +144,71 @@ describe("WorksheetView", () => {
     expect(wrapper.find('[data-testid="answer-row-1"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="answer-row-1"]').find("label").text()).toBe("2 + 3 =");
     expect(wrapper.find('[data-testid="answer-row-1"]').find("input").exists()).toBe(true);
+  });
+
+  it("loads a remote worksheet after auth finishes restoring on a refreshed deep link", async () => {
+    routeWorksheetId = "remote-worksheet-1";
+    const authStore = useAuthStore();
+    const worksheetStore = useWorksheetStore();
+    worksheetStore.anonymousWorksheets = [];
+    worksheetStore.setActiveWorksheet(null);
+    authStore.user = null;
+    authStore.setAccessToken("restored-token");
+    authStore.hasCheckedAuth = false;
+
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        worksheet: {
+          id: "remote-worksheet-1",
+          title: "Recovered Remote Worksheet",
+          status: "partial",
+          problemCount: 2,
+          difficulty: "medium",
+          allowedOperations: ["+"],
+          numberRangeMin: 1,
+          numberRangeMax: 20,
+          worksheetSize: "small",
+          cleanDivisionOnly: true,
+          createdAt: "2026-04-19T12:00:00.000Z",
+          submittedAt: null,
+          elapsedSeconds: 18,
+          result: undefined
+        },
+        questions: [
+          { id: "q1", questionOrder: 1, operation: "+", leftOperand: 8, rightOperand: 4, displayText: "8 + 4 =", correctAnswer: 12 },
+          { id: "q2", questionOrder: 2, operation: "+", leftOperand: 9, rightOperand: 3, displayText: "9 + 3 =", correctAnswer: 12 }
+        ],
+        answers: [{ questionOrder: 1, answerText: "12", isCorrect: null }]
+      })
+    } as Response);
+
+    mount(WorksheetView);
+
+    expect(fetchSpy).not.toHaveBeenCalled();
+
+    authStore.user = {
+      id: "user-1",
+      email: "student@example.com",
+      publicNickname: "Student"
+    };
+    authStore.hasCheckedAuth = true;
+
+    await nextTick();
+    await vi.waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(worksheetStore.activeWorksheet?.id).toBe("remote-worksheet-1");
+    });
+
+    expect(fetchSpy.mock.calls[0]?.[0]).toBe("http://localhost:3000/api/worksheets/remote-worksheet-1");
+    expect(fetchSpy.mock.calls[0]?.[1]).toMatchObject({
+      credentials: "include"
+    });
+    expect((fetchSpy.mock.calls[0]?.[1] as RequestInit).headers).toBeInstanceOf(Headers);
+    expect(((fetchSpy.mock.calls[0]?.[1] as RequestInit).headers as Headers).get("Authorization")).toBe(
+      "Bearer restored-token"
+    );
+    expect(worksheetStore.activeWorksheet?.title).toBe("Recovered Remote Worksheet");
+    expect(worksheetStore.activeWorksheet?.answers).toEqual(["12", null]);
   });
 });
