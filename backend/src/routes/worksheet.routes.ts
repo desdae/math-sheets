@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { asyncHandler } from "../lib/async-handler.js";
 import { authenticate } from "../middleware/authenticate.js";
+import { noStore } from "../middleware/no-store.js";
 import { validateBody } from "../middleware/validate.js";
 import {
   createWorksheetWithAttempt,
@@ -22,6 +23,7 @@ worksheetRouter.post("/generate", validateBody(worksheetConfigSchema), (req, res
 worksheetRouter.post(
   "/",
   authenticate,
+  noStore,
   validateBody(worksheetConfigSchema),
   asyncHandler(async (req, res) => {
     const worksheet = generateWorksheet(req.body);
@@ -44,6 +46,7 @@ worksheetRouter.post(
 worksheetRouter.get(
   "/",
   authenticate,
+  noStore,
   asyncHandler(async (req, res) => {
     res.json(await listWorksheetsByUserId(req.user!.id));
   })
@@ -52,6 +55,7 @@ worksheetRouter.get(
 worksheetRouter.get(
   "/:id",
   authenticate,
+  noStore,
   asyncHandler(async (req, res) => {
     res.json(await getWorksheetDetails(String(req.params.id), req.user!.id));
   })
@@ -60,6 +64,7 @@ worksheetRouter.get(
 worksheetRouter.patch(
   "/:id/save",
   authenticate,
+  noStore,
   validateBody(saveWorksheetSchema),
   asyncHandler(async (req, res) => {
     res.json(
@@ -77,6 +82,7 @@ worksheetRouter.patch(
 worksheetRouter.post(
   "/:id/submit",
   authenticate,
+  noStore,
   validateBody(submitWorksheetSchema),
   asyncHandler(async (req, res) => {
     res.json(
@@ -93,6 +99,7 @@ worksheetRouter.post(
 worksheetRouter.post(
   "/import-local",
   authenticate,
+  noStore,
   validateBody(importWorksheetsSchema),
   asyncHandler(async (req, res) => {
     const imported = await importLocalWorksheets(req.user!.id, req.body.worksheets);

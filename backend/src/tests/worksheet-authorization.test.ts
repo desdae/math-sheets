@@ -41,6 +41,17 @@ describe("worksheet ownership enforcement", () => {
     expect(getWorksheetDetailsMock).toHaveBeenCalledWith("worksheet-123", "user-1");
   });
 
+  it("marks worksheet detail responses as non-cacheable", async () => {
+    getWorksheetDetailsMock.mockResolvedValue({ worksheet: null, questions: [], answers: [] });
+
+    const response = await request(createApp())
+      .get("/api/worksheets/worksheet-123")
+      .set("Authorization", `Bearer ${signAccessToken("user-1")}`);
+
+    expect(response.status).toBe(200);
+    expect(response.headers["cache-control"]).toContain("no-store");
+  });
+
   it("passes the signed-in user id into worksheet save operations", async () => {
     saveWorksheetAnswersMock.mockResolvedValue({ worksheetId: "worksheet-123", status: "partial" });
 
