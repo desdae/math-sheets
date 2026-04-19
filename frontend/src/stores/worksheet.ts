@@ -47,6 +47,7 @@ export type WorksheetSaveState = "idle" | "dirty" | "saving" | "saved" | "error"
 
 const anonymousStore = createAnonymousWorksheetStore();
 let autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
+let autoSaveInFlight = false;
 
 const randomKey = () => `local-${crypto.randomUUID()}`;
 const normalizeElapsedSeconds = (value: unknown) => {
@@ -127,14 +128,26 @@ export const useWorksheetStore = defineStore("worksheet", {
         return;
       }
 
+      autoSaveInFlight = true;
       this.saveState = "saving";
 
       try {
         await this.saveProgress(this.activeWorksheet);
         this.lastSavedAt = new Date().toISOString();
-        this.saveState = "saved";
+        if (this.saveState !== "dirty") {
+          this.saveState = "saved";
+        }
       } catch {
         this.saveState = "error";
+      } finally {
+        autoSaveInFlight = false;
+
+        if (this.saveState === "dirty" && !autoSaveTimer) {
+          autoSaveTimer = setTimeout(() => {
+            autoSaveTimer = null;
+            void this.autoSaveActiveWorksheet();
+          }, 500);
+        }
       }
     },
     queueAutoSave() {
@@ -143,8 +156,13 @@ export const useWorksheetStore = defineStore("worksheet", {
       }
 
       this.markSaveQueued();
-      this.clearAutoSaveTimer();
+
+      if (autoSaveTimer || autoSaveInFlight) {
+        return;
+      }
+
       autoSaveTimer = setTimeout(() => {
+        autoSaveTimer = null;
         void this.autoSaveActiveWorksheet();
       }, 500);
     },

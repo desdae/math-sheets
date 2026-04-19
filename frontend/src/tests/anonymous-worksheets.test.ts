@@ -15,6 +15,7 @@ describe("anonymous worksheets", () => {
   beforeEach(() => {
     apiFetchMock.mockReset();
     localStorage.clear();
+    vi.useRealTimers();
   });
 
   it("persists local worksheets", () => {
@@ -262,5 +263,68 @@ describe("anonymous worksheets", () => {
       method: "PATCH",
       keepalive: true
     });
+  });
+
+  it("does not postpone autosave indefinitely while the user keeps typing", async () => {
+    vi.useFakeTimers();
+    setActivePinia(createPinia());
+    const authStore = useAuthStore();
+    const worksheetStore = useWorksheetStore();
+
+    authStore.user = {
+      id: "user-1",
+      email: "test@example.com",
+      publicNickname: "Test User"
+    };
+
+    worksheetStore.activeWorksheet = {
+      id: "remote-1",
+      title: "Timed Worksheet",
+      status: "partial",
+      config: {
+        problemCount: 2,
+        difficulty: "easy",
+        allowedOperations: ["+"],
+        numberRangeMin: 1,
+        numberRangeMax: 10,
+        worksheetSize: "small",
+        cleanDivisionOnly: true
+      },
+      questions: [
+        {
+          id: "question-1",
+          questionOrder: 1,
+          operation: "+",
+          leftOperand: 2,
+          rightOperand: 2,
+          displayText: "2 + 2 =",
+          correctAnswer: 4
+        },
+        {
+          id: "question-2",
+          questionOrder: 2,
+          operation: "+",
+          leftOperand: 3,
+          rightOperand: 1,
+          displayText: "3 + 1 =",
+          correctAnswer: 4
+        }
+      ],
+      answers: ["", ""],
+      source: "remote",
+      localImportKey: "remote-1",
+      createdAt: "2026-04-10T09:00:00.000Z",
+      elapsedSeconds: 0
+    };
+
+    apiFetchMock.mockResolvedValue(undefined);
+
+    worksheetStore.updateAnswer(0, "4");
+    vi.advanceTimersByTime(400);
+    worksheetStore.updateAnswer(1, "4");
+    vi.advanceTimersByTime(200);
+
+    expect(apiFetchMock).toHaveBeenCalledTimes(1);
+    expect(apiFetchMock.mock.calls[0]?.[0]).toBe("/worksheets/remote-1/save");
   });
 });
