@@ -7,7 +7,7 @@ const runtimeEnvSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().default(3000),
   APP_BASE_URL: z.string().url(),
-  DATABASE_URL: z.string().min(1),
+  DATABASE_URL: z.string().default(""),
   GOOGLE_CLIENT_ID: z.string().optional().default(""),
   GOOGLE_CLIENT_SECRET: z.string().optional().default(""),
   GOOGLE_CALLBACK_URL: z.string().url().default("http://localhost:3000/api/auth/google/callback"),
@@ -28,6 +28,14 @@ export type WorkerBindings = Record<string, unknown> & {
 };
 
 let runtimeEnv: RuntimeEnv | null = null;
+
+const hasRuntimeBindings = (source: Record<string, unknown>) =>
+  typeof source.APP_BASE_URL === "string" &&
+  source.APP_BASE_URL.length > 0 &&
+  typeof source.JWT_ACCESS_SECRET === "string" &&
+  source.JWT_ACCESS_SECRET.length > 0 &&
+  typeof source.JWT_REFRESH_SECRET === "string" &&
+  source.JWT_REFRESH_SECRET.length > 0;
 
 const getDotenvPath = () => {
   const currentDir = dirname(fileURLToPath(import.meta.url));
@@ -52,7 +60,10 @@ const normalizeSource = (source: Record<string, unknown>) => {
 };
 
 export const configureNodeEnv = (source: Record<string, unknown> = process.env) => {
-  config({ path: getDotenvPath() });
+  if (source !== process.env || !hasRuntimeBindings(process.env as Record<string, unknown>)) {
+    config({ path: getDotenvPath() });
+  }
+
   runtimeEnv = normalizeSource(source === process.env ? (process.env as Record<string, unknown>) : source);
   return runtimeEnv;
 };

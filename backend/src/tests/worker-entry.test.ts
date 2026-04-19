@@ -51,18 +51,18 @@ describe("worker bootstrap", () => {
     configureWorkerEnvMock.mockReset();
   });
 
-  it("installs worker bindings only when handling a request", async () => {
+  it("boots the express adapter at import time and installs worker bindings per request", async () => {
     const workerModule = await import("../worker.js");
     const request = new Request("https://api.mathsheets.example/api/health");
 
+    expect(listenMock).toHaveBeenCalledWith(3000);
+    expect(httpServerHandlerMock).toHaveBeenCalledWith({ port: 3000 });
     expect(configureWorkerEnvMock).not.toHaveBeenCalled();
 
     await workerModule.default.fetch(request, workerEnv, {} as ExecutionContext);
 
     expect(configureWorkerEnvMock).toHaveBeenCalledTimes(1);
     expect(configureWorkerEnvMock).toHaveBeenCalledWith(workerEnv);
-    expect(listenMock).toHaveBeenCalledWith(3000);
-    expect(httpServerHandlerMock).toHaveBeenCalledWith({ port: 3000 });
     expect(handlerFetchMock).toHaveBeenCalledTimes(1);
   });
 });
