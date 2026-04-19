@@ -12,6 +12,4 @@ await pool.query(`
   RESTART IDENTITY CASCADE
 `);
 
-await pool.end();
-
 console.log("e2e database reset");
