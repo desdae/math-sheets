@@ -246,7 +246,13 @@ export const getWorksheetDetails = async (worksheetId: string, userId: string) =
      FROM worksheet_answers wa
      JOIN worksheet_attempts att ON att.id = wa.attempt_id
      JOIN worksheet_questions wq ON wq.id = wa.worksheet_question_id
-     WHERE att.worksheet_id = $1
+     WHERE att.id = (
+       SELECT id
+       FROM worksheet_attempts
+       WHERE worksheet_id = $1
+       ORDER BY started_at ASC
+       LIMIT 1
+     )
      ORDER BY wq.question_order ASC`,
     [worksheetId]
   );

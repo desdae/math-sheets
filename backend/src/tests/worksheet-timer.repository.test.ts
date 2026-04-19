@@ -43,4 +43,36 @@ describe("worksheet timer repository mapping", () => {
 
     expect(result.worksheet?.elapsedSeconds).toBe(185);
   });
+
+  it("reads answers from the primary worksheet attempt only", async () => {
+    queryMock
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: "worksheet-1",
+            title: "Timed Worksheet",
+            status: "partial",
+            difficulty: "easy",
+            problem_count: 4,
+            allowed_operations: ["+"],
+            number_range_min: 1,
+            number_range_max: 10,
+            worksheet_size: "small",
+            clean_division_only: true,
+            source: "generated",
+            created_at: "2026-04-13T10:00:00.000Z",
+            submitted_at: null,
+            elapsed_seconds: 185
+          }
+        ]
+      })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] });
+
+    const { getWorksheetDetails } = await import("../repositories/worksheet.repository.js");
+    await getWorksheetDetails("worksheet-1", "user-1");
+
+    expect(String(queryMock.mock.calls[2]?.[0])).toContain("ORDER BY started_at ASC");
+    expect(String(queryMock.mock.calls[2]?.[0])).toContain("LIMIT 1");
+  });
 });
