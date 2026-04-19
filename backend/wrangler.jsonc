@@ -16,7 +16,7 @@
   "hyperdrive": [
     {
       "binding": "HYPERDRIVE",
-      "id": "paste-the-id-returned-by-wrangler-hyperdrive-create",
+      "id": "c1200f3cd62344398a7b69cd15395203",
       "localConnectionString": "postgres://postgres:postgres@localhost:5433/mathsheets"
     }
   ]
