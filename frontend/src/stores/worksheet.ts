@@ -217,7 +217,7 @@ export const useWorksheetStore = defineStore("worksheet", {
         return;
       }
 
-      await this.saveProgress(this.activeWorksheet);
+      await this.saveProgress(this.activeWorksheet, { keepalive: true });
     },
     setActiveWorksheet(record: WorksheetRecord | null) {
       this.clearAutoSaveTimer();
@@ -256,7 +256,7 @@ export const useWorksheetStore = defineStore("worksheet", {
 
       return this.activeWorksheet;
     },
-    async saveProgress(record: WorksheetRecord) {
+    async saveProgress(record: WorksheetRecord, options?: { keepalive?: boolean }) {
       const authStore = useAuthStore();
 
       if (record.status === "completed") {
@@ -270,6 +270,7 @@ export const useWorksheetStore = defineStore("worksheet", {
 
       await apiFetch(`/worksheets/${record.id}/save`, {
         method: "PATCH",
+        keepalive: options?.keepalive ?? false,
         body: JSON.stringify({
           answers: record.questions.map((question, index) => ({
             questionId: question.id,

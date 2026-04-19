@@ -210,4 +210,57 @@ describe("anonymous worksheets", () => {
       elapsedSeconds: 125
     });
   });
+
+  it("uses a keepalive request when flushing remote progress during unload", async () => {
+    setActivePinia(createPinia());
+    const authStore = useAuthStore();
+    const worksheetStore = useWorksheetStore();
+
+    authStore.user = {
+      id: "user-1",
+      email: "test@example.com",
+      publicNickname: "Test User"
+    };
+
+    worksheetStore.activeWorksheet = {
+      id: "remote-1",
+      title: "Timed Worksheet",
+      status: "partial",
+      config: {
+        problemCount: 1,
+        difficulty: "easy",
+        allowedOperations: ["+"],
+        numberRangeMin: 1,
+        numberRangeMax: 10,
+        worksheetSize: "small",
+        cleanDivisionOnly: true
+      },
+      questions: [
+        {
+          id: "question-1",
+          questionOrder: 1,
+          operation: "+",
+          leftOperand: 2,
+          rightOperand: 2,
+          displayText: "2 + 2 =",
+          correctAnswer: 4
+        }
+      ],
+      answers: ["4"],
+      source: "remote",
+      localImportKey: "remote-1",
+      createdAt: "2026-04-10T09:00:00.000Z",
+      elapsedSeconds: 125
+    };
+
+    apiFetchMock.mockResolvedValue(undefined);
+
+    await worksheetStore.flushActiveWorksheetProgress();
+
+    expect(apiFetchMock.mock.calls[0]?.[0]).toBe("/worksheets/remote-1/save");
+    expect(apiFetchMock.mock.calls[0]?.[1]).toMatchObject({
+      method: "PATCH",
+      keepalive: true
+    });
+  });
 });
