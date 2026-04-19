@@ -1,12 +1,25 @@
 import { httpServerHandler } from "cloudflare:node";
-import { env as workerEnv } from "cloudflare:workers";
 import { createApp } from "./app.js";
 import { configureWorkerEnv } from "./config/env.js";
 
-configureWorkerEnv(workerEnv);
+type WorkerHandler = ReturnType<typeof httpServerHandler>;
 
-const app = createApp();
+let handler: WorkerHandler | null = null;
 
-app.listen(3000);
+const getHandler = (env: Record<string, unknown>) => {
+  if (!handler) {
+    configureWorkerEnv(env);
 
-export default httpServerHandler({ port: 3000 });
+    const app = createApp();
+    app.listen(3000);
+    handler = httpServerHandler({ port: 3000 });
+  }
+
+  return handler;
+};
+
+export default {
+  fetch(request: Request, env: Record<string, unknown>, ctx: ExecutionContext) {
+    return getHandler(env).fetch(request, env, ctx);
+  }
+};
