@@ -261,32 +261,36 @@ npm --workspace backend exec wrangler hyperdrive create mathsheets-db --connecti
 Deploy the frontend separately and set:
 
 ```env
-VITE_API_BASE_URL=https://api.mathsheets.example/api
+VITE_API_BASE_URL=https://api.mathsheet.app/api
 ```
 
 ### OAuth and cookies
 
 For split deployments:
 
-- use the real frontend hostname as the Google OAuth JavaScript origin
-- use the real API hostname for `GOOGLE_CALLBACK_URL`
-- verify cookie and CORS behavior against your production subdomains before launch
+- use `https://mathsheet.app` as the Google OAuth JavaScript origin
+- use `https://api.mathsheet.app/api/auth/google/callback` for `GOOGLE_CALLBACK_URL`
+- set backend `APP_BASE_URL=https://mathsheet.app`
+- set backend `COOKIE_DOMAIN=mathsheet.app`
+- verify login, refresh, and logout against the real production hosts before launch
 
 ## Production hardening
 
 Current recommended production deployment:
 
-- deploy the frontend and backend independently
+- deploy the frontend at `https://mathsheet.app`
+- deploy the backend at `https://api.mathsheet.app`
 - terminate traffic over HTTPS only
-- set `VITE_API_BASE_URL` explicitly for the frontend
+- set `VITE_API_BASE_URL=https://api.mathsheet.app/api` for the frontend
 
 Backend auth cookies are currently configured as:
 
 - `HttpOnly`
-- `SameSite=Lax`
+- `SameSite=None`
 - `Secure` in production
+- `Domain=mathsheet.app` for split-origin production
 
-If you deploy the frontend and API onto different origins or subdomains, validate the cookie and CORS settings against your production hostnames before launch.
+Validate the cookie and CORS settings against the real production hostnames before launch.
 
 ## Available scripts
 
