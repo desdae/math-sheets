@@ -22,6 +22,7 @@ export const saveWorksheetSchema = z.object({
       answerText: z.string().default("")
     })
   ),
+  saveRevision: z.number().int().min(1),
   elapsedSeconds: z.number().int().min(0).default(0),
   status: z.enum(["draft", "partial"])
 });

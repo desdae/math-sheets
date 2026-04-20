@@ -7,6 +7,7 @@ import { useAuthStore } from "../stores/auth";
 import { useWorksheetStore } from "../stores/worksheet";
 
 let routeWorksheetId = "local-worksheet-1";
+const mountedWrappers: Array<{ unmount: () => void }> = [];
 
 vi.mock("vue-router", () => ({
   RouterLink: {
@@ -44,6 +45,7 @@ const buildWorksheet = () => ({
   source: "local" as const,
   localImportKey: "local-import-1",
   createdAt: new Date().toISOString(),
+  saveRevision: 0,
   elapsedSeconds: 0,
   result: undefined
 });
@@ -58,12 +60,21 @@ describe("WorksheetView", () => {
   });
 
   afterEach(() => {
+    while (mountedWrappers.length > 0) {
+      mountedWrappers.pop()?.unmount();
+    }
     vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
-  it("shows unanswered count and does not show wrong-answer state before submit", async () => {
+  const mountWorksheetView = () => {
     const wrapper = mount(WorksheetView);
+    mountedWrappers.push(wrapper);
+    return wrapper;
+  };
+
+  it("shows unanswered count and does not show wrong-answer state before submit", async () => {
+    const wrapper = mountWorksheetView();
 
     expect(wrapper.text()).toContain("2 unanswered");
     expect(wrapper.text()).toContain("2 of 4 answered");
@@ -74,7 +85,7 @@ describe("WorksheetView", () => {
   it("warns and asks for confirmation before submitting with unanswered problems", async () => {
     const worksheetStore = useWorksheetStore();
     const submitSpy = vi.spyOn(worksheetStore, "submitActiveWorksheet").mockResolvedValue(null);
-    const wrapper = mount(WorksheetView);
+    const wrapper = mountWorksheetView();
 
     expect(wrapper.text()).toContain("2 problems are still empty");
 
@@ -99,7 +110,7 @@ describe("WorksheetView", () => {
       }
     });
 
-    const wrapper = mount(WorksheetView);
+    const wrapper = mountWorksheetView();
 
     expect(wrapper.text()).toContain("Completed and locked");
     expect(wrapper.get('[data-testid="worksheet-live-timer"]').text()).toContain("Completed in: 04:02");
@@ -121,14 +132,14 @@ describe("WorksheetView", () => {
       }
     });
 
-    const wrapper = mount(WorksheetView);
+    const wrapper = mountWorksheetView();
 
     expect(wrapper.get('[data-testid="worksheet-grid"]').attributes("data-worksheet-size")).toBe("large");
   });
 
   it("starts a live timer immediately after the worksheet loads", async () => {
     vi.useFakeTimers();
-    const wrapper = mount(WorksheetView);
+    const wrapper = mountWorksheetView();
 
     expect(wrapper.get('[data-testid="worksheet-live-timer"]').text()).toContain("Time: 00:00");
 
@@ -139,7 +150,7 @@ describe("WorksheetView", () => {
   });
 
   it("renders each answer as a compact row with a shared layout hook for mobile", () => {
-    const wrapper = mount(WorksheetView);
+    const wrapper = mountWorksheetView();
 
     expect(wrapper.find('[data-testid="answer-row-1"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="answer-row-1"]').find("label").text()).toBe("2 + 3 =");
@@ -171,6 +182,7 @@ describe("WorksheetView", () => {
           worksheetSize: "small",
           cleanDivisionOnly: true,
           createdAt: "2026-04-19T12:00:00.000Z",
+          saveRevision: 4,
           submittedAt: null,
           elapsedSeconds: 18,
           result: undefined
@@ -183,7 +195,7 @@ describe("WorksheetView", () => {
       })
     } as Response);
 
-    mount(WorksheetView);
+    mountWorksheetView();
 
     expect(fetchSpy).not.toHaveBeenCalled();
 
@@ -228,7 +240,7 @@ describe("WorksheetView", () => {
 
     const flushSpy = vi.spyOn(worksheetStore, "flushActiveWorksheetProgress").mockResolvedValue();
 
-    mount(WorksheetView);
+    mountWorksheetView();
     window.dispatchEvent(new PageTransitionEvent("pagehide", { persisted: false }));
     await nextTick();
 

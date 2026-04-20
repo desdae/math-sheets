@@ -23,6 +23,7 @@ const mapWorksheetRow = (row: Record<string, unknown>) => ({
   source: row.source,
   createdAt: row.created_at,
   submittedAt: row.submitted_at,
+  saveRevision: Number(row.save_revision ?? 0),
   elapsedSeconds: Number(row.elapsed_seconds ?? 0),
   result:
     row.score_total != null
@@ -155,6 +156,7 @@ export const saveWorksheetAnswers = async (input: {
   worksheetId: string;
   userId: string;
   answers: WorksheetAnswerInput[];
+  saveRevision: number;
   elapsedSeconds: number;
   status: "draft" | "partial";
 }) => {
@@ -168,11 +170,18 @@ export const saveWorksheetAnswers = async (input: {
     }
 
     const attemptResult = await client.query(
-      `SELECT id FROM worksheet_attempts WHERE worksheet_id = $1 ORDER BY started_at ASC LIMIT 1`,
+      `SELECT id, save_revision FROM worksheet_attempts WHERE worksheet_id = $1 ORDER BY started_at ASC LIMIT 1`,
       [input.worksheetId]
     );
 
     const attemptId = attemptResult.rows[0]?.id;
+    const currentSaveRevision = Number(attemptResult.rows[0]?.save_revision ?? 0);
+
+    if (input.saveRevision < currentSaveRevision) {
+      await client.query("ROLLBACK");
+      return { worksheetId: input.worksheetId, status: worksheet.status };
+    }
+
     const questionResult = await client.query(`SELECT id FROM worksheet_questions WHERE worksheet_id = $1`, [input.worksheetId]);
     const allowedQuestionIds = new Set(questionResult.rows.map((row: { id: string }) => row.id));
 
@@ -194,9 +203,9 @@ export const saveWorksheetAnswers = async (input: {
 
     await client.query(
       `UPDATE worksheet_attempts
-       SET status = $2, elapsed_seconds = $3, last_saved_at = NOW()
+       SET status = $2, save_revision = $3, elapsed_seconds = $4, last_saved_at = NOW()
        WHERE id = $1`,
-      [attemptId, input.status, input.elapsedSeconds]
+      [attemptId, input.status, input.saveRevision, input.elapsedSeconds]
     );
 
     await client.query(
@@ -218,12 +227,13 @@ export const getWorksheetDetails = async (worksheetId: string, userId: string) =
   const worksheetResult = await pool.query(
     `SELECT w.*,
             att.elapsed_seconds,
+            att.save_revision,
             att.score_correct,
             att.score_total,
             att.accuracy_percentage
      FROM worksheets w
      LEFT JOIN LATERAL (
-       SELECT elapsed_seconds, score_correct, score_total, accuracy_percentage
+       SELECT elapsed_seconds, save_revision, score_correct, score_total, accuracy_percentage
        FROM worksheet_attempts
        WHERE worksheet_id = w.id
        ORDER BY started_at ASC

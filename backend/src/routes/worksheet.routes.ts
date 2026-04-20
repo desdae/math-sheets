@@ -72,6 +72,7 @@ worksheetRouter.patch(
         worksheetId: String(req.params.id),
         userId: req.user!.id,
         answers: req.body.answers,
+        saveRevision: req.body.saveRevision,
         elapsedSeconds: req.body.elapsedSeconds,
         status: req.body.status
       })
