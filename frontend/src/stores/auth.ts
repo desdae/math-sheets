@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { apiFetch, authTokenStorageKey, setStoredToken } from "../lib/api";
+import { apiFetch, authTokenStorageKey, resolveGoogleAuthUrl, setStoredToken } from "../lib/api";
 
 type User = {
   id: string;
@@ -36,7 +36,11 @@ export const useAuthStore = defineStore("auth", {
       }
     },
     startGoogleSignIn() {
-      window.location.href = `${import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000/api"}/auth/google`;
+      window.location.href = resolveGoogleAuthUrl(
+        import.meta.env.VITE_API_BASE_URL,
+        import.meta.env.DEV,
+        window.location.origin
+      );
     },
     async savePublicNickname(publicNickname: string) {
       const payload = await apiFetch<{ user: User }>("/users/me/profile", {

@@ -14,6 +14,9 @@ export const resolveApiBaseUrl = (configuredBaseUrl?: string, isDev = false, cur
   return "/api";
 };
 
+export const resolveGoogleAuthUrl = (configuredBaseUrl?: string, isDev = false, currentOrigin?: string) =>
+  `${resolveApiBaseUrl(configuredBaseUrl, isDev, currentOrigin)}/auth/google`;
+
 const API_BASE_URL = resolveApiBaseUrl(
   import.meta.env.VITE_API_BASE_URL,
   import.meta.env.DEV,

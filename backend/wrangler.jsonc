@@ -10,9 +10,9 @@
   },
   "vars": {
     "NODE_ENV": "production",
-    "APP_BASE_URL": "https://mathsheets-app.desdae.workers.dev",
-    "GOOGLE_CALLBACK_URL": "https://mathsheets-api.desdae.workers.dev/api/auth/google/callback",
-    "COOKIE_DOMAIN": "mathsheets-api.desdae.workers.dev"
+    "APP_BASE_URL": "https://mathsheet.app",
+    "GOOGLE_CALLBACK_URL": "https://mathsheet.app/api/auth/google/callback",
+    "COOKIE_DOMAIN": "mathsheet.app"
   },
   "hyperdrive": [
     {
