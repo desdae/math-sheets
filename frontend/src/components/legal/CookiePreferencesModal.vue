@@ -31,7 +31,7 @@
         <input v-model="advertising" name="advertising" type="checkbox" />
         <span>
           <strong>Advertising / personalization</strong>
-          <small>Allows unobtrusive Google AdSense placements on public pages after you opt in.</small>
+          <small>Allows Google AdSense Auto ads after you opt in.</small>
         </span>
       </label>
       <RouterLink class="text-link" to="/privacy" @click="$emit('close')">Read the Privacy Policy</RouterLink>

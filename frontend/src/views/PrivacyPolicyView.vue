@@ -33,8 +33,8 @@
         off unless you explicitly allow them through the consent controls.
       </p>
       <p>
-        If you opt into advertising, MathSheets may show unobtrusive Google AdSense placements on selected public pages.
-        Worksheet-solving and other high-interaction learning screens stay ad-free.
+        If you opt into advertising, MathSheets may load Google AdSense Auto ads. AdSense decides where eligible ads appear
+        based on the site and your consent settings.
       </p>
     </section>
     <section class="legal-section">

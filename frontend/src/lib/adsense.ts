@@ -1,10 +1,7 @@
 export type AdSenseConfig = {
   enabled: boolean;
   clientId: string;
-  inlineSlotId: string;
 };
-
-const ALLOWED_AD_PATHS = new Set(["/", "/privacy", "/terms", "/leaderboard"]);
 
 let scriptPromise: Promise<void> | null = null;
 
@@ -12,19 +9,13 @@ export function resolveAdsenseConfig(
   env: Record<string, string | boolean | undefined> = import.meta.env as unknown as Record<string, string | boolean | undefined>
 ): AdSenseConfig {
   const clientId = String(env.VITE_ADSENSE_CLIENT_ID ?? "").trim();
-  const inlineSlotId = String(env.VITE_ADSENSE_INLINE_SLOT_ID ?? "").trim();
   const enabledFlag = String(env.VITE_ENABLE_ADSENSE ?? "false") === "true";
   const isProduction = env.PROD === true || env.MODE === "production";
 
   return {
-    enabled: Boolean(isProduction && enabledFlag && clientId && inlineSlotId),
-    clientId,
-    inlineSlotId
+    enabled: Boolean(isProduction && enabledFlag && clientId),
+    clientId
   };
-}
-
-export function canRenderAdsOnPath(path: string) {
-  return ALLOWED_AD_PATHS.has(path);
 }
 
 export async function ensureAdsenseScript(clientId: string) {

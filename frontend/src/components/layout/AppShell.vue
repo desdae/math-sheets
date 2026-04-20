@@ -4,12 +4,6 @@
     <main class="app-main">
       <slot />
     </main>
-    <AdSenseInline
-      v-if="showAdSlot"
-      :active="showAdSlot"
-      :ad-client="adsenseConfig.clientId"
-      :slot-id="adsenseConfig.inlineSlotId"
-    />
     <AppFooter @open-consent="isConsentPreferencesOpen = true" />
     <CookieConsentBanner
       :visible="showConsentBanner"
@@ -27,9 +21,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { useRoute } from "vue-router";
-import { canRenderAdsOnPath, resolveAdsenseConfig } from "../../lib/adsense";
+import { computed, ref, watch } from "vue";
+import { ensureAdsenseScript, resolveAdsenseConfig } from "../../lib/adsense";
 import {
   createAcceptAllConsent,
   createRejectNonEssentialConsent,
@@ -37,19 +30,25 @@ import {
   saveConsent,
   type ConsentState
 } from "../../lib/consent";
-import AdSenseInline from "../ads/AdSenseInline.vue";
 import CookieConsentBanner from "../legal/CookieConsentBanner.vue";
 import CookiePreferencesModal from "../legal/CookiePreferencesModal.vue";
 import AppFooter from "./AppFooter.vue";
 import AppHeader from "./AppHeader.vue";
 
-const route = useRoute();
 const isConsentPreferencesOpen = ref(false);
 const consent = ref<ConsentState | null>(getStoredConsent());
 const showConsentBanner = computed(() => consent.value === null && !isConsentPreferencesOpen.value);
 const adsenseConfig = resolveAdsenseConfig();
-const showAdSlot = computed(
-  () => adsenseConfig.enabled && consent.value?.advertising === true && canRenderAdsOnPath(route.path)
+const shouldEnableAdsense = computed(() => adsenseConfig.enabled && consent.value?.advertising === true);
+
+watch(
+  shouldEnableAdsense,
+  (enabled) => {
+    if (enabled) {
+      void ensureAdsenseScript(adsenseConfig.clientId);
+    }
+  },
+  { immediate: true }
 );
 
 function refreshConsentState() {
