@@ -19,14 +19,14 @@ const oauthStateCookieName = "mathsheets_oauth_state";
 const getAuthCookieDomain = () => (env.NODE_ENV === "production" ? env.COOKIE_DOMAIN : undefined);
 const getOAuthStateCookieOptions = () => ({
   httpOnly: true,
-  sameSite: (env.NODE_ENV === "production" ? "none" : "lax") as "none" | "lax",
+  sameSite: "lax" as const,
   secure: env.NODE_ENV === "production",
   domain: getAuthCookieDomain(),
   path: "/api/auth"
 });
 const getRefreshCookieOptions = () => ({
   httpOnly: true,
-  sameSite: (env.NODE_ENV === "production" ? "none" : "lax") as "none" | "lax",
+  sameSite: "lax" as const,
   secure: env.NODE_ENV === "production",
   domain: getAuthCookieDomain(),
   path: "/api/auth"

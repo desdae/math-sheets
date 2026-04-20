@@ -173,7 +173,7 @@ describe("google oauth security", () => {
     expect(cookieHeader).toContain("Secure");
     expect(cookieHeader).toContain("HttpOnly");
     expect(cookieHeader).toContain("Path=/api/auth");
-    expect(cookieHeader).toContain("SameSite=None");
+    expect(cookieHeader).toContain("SameSite=Lax");
     expect(cookieHeader).toContain("Domain=mathsheet.app");
   });
 
@@ -207,7 +207,7 @@ describe("google oauth security", () => {
     expect(startCookieHeader).toContain("HttpOnly");
     expect(startCookieHeader).toContain("Secure");
     expect(startCookieHeader).toContain("Path=/api/auth");
-    expect(startCookieHeader).toContain("SameSite=None");
+    expect(startCookieHeader).toContain("SameSite=Lax");
     expect(startCookieHeader).toContain("Domain=mathsheet.app");
 
     const stateCookie = startCookieList.find((value: string) => value.startsWith("mathsheets_oauth_state="));
