@@ -177,7 +177,7 @@ describe("google oauth security", () => {
     expect(cookieHeader).toContain("Domain=mathsheet.app");
   });
 
-  it("sets and clears the oauth state cookie with the same explicit production domain scope", async () => {
+  it("keeps the oauth state cookie scoped to the api host in production", async () => {
     env.NODE_ENV = "production";
     env.COOKIE_DOMAIN = "mathsheet.app";
     exchangeCodeForGoogleProfileMock.mockResolvedValue({
@@ -208,7 +208,7 @@ describe("google oauth security", () => {
     expect(startCookieHeader).toContain("Secure");
     expect(startCookieHeader).toContain("Path=/api/auth");
     expect(startCookieHeader).toContain("SameSite=Lax");
-    expect(startCookieHeader).toContain("Domain=mathsheet.app");
+    expect(startCookieHeader).not.toContain("Domain=mathsheet.app");
 
     const stateCookie = startCookieList.find((value: string) => value.startsWith("mathsheets_oauth_state="));
     const state = /mathsheets_oauth_state=([^;]+)/.exec(String(stateCookie))?.[1];
@@ -219,13 +219,12 @@ describe("google oauth security", () => {
 
     expect(callback.status).toBe(302);
 
-    const callbackCookieHeader = Array.isArray(callback.headers["set-cookie"])
-      ? callback.headers["set-cookie"].join(";")
-      : String(callback.headers["set-cookie"] ?? "");
+    const callbackCookieList = Array.isArray(callback.headers["set-cookie"]) ? callback.headers["set-cookie"] : [];
+    const clearedStateCookie = callbackCookieList.find((value: string) => value.startsWith("mathsheets_oauth_state="));
 
-    expect(callbackCookieHeader).toContain("mathsheets_oauth_state=;");
-    expect(callbackCookieHeader).toContain("Domain=mathsheet.app");
-    expect(callbackCookieHeader).toContain("Path=/api/auth");
+    expect(String(clearedStateCookie)).toContain("mathsheets_oauth_state=;");
+    expect(String(clearedStateCookie)).not.toContain("Domain=mathsheet.app");
+    expect(String(clearedStateCookie)).toContain("Path=/api/auth");
   });
 
   it("returns 401 when the refresh cookie is missing", async () => {
