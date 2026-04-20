@@ -154,6 +154,7 @@ describe("google oauth security", () => {
 
   it("sets refresh cookies with Secure in production", async () => {
     env.NODE_ENV = "production";
+    env.COOKIE_DOMAIN = "mathsheet.app";
     rotateRefreshTokenMock.mockResolvedValue({
       accessToken: "access-token",
       refreshToken: "refresh-token"
@@ -173,27 +174,58 @@ describe("google oauth security", () => {
     expect(cookieHeader).toContain("HttpOnly");
     expect(cookieHeader).toContain("Path=/api/auth");
     expect(cookieHeader).toContain("SameSite=None");
+    expect(cookieHeader).toContain("Domain=mathsheet.app");
   });
 
-  it("sets the oauth state cookie with the same explicit security policy", async () => {
+  it("sets and clears the oauth state cookie with the same explicit production domain scope", async () => {
     env.NODE_ENV = "production";
+    env.COOKIE_DOMAIN = "mathsheet.app";
+    exchangeCodeForGoogleProfileMock.mockResolvedValue({
+      googleSub: "google-sub-1",
+      email: "kid@example.com",
+      displayName: "Kid Example",
+      avatarUrl: null
+    });
+    findOrCreateUserFromGoogleProfileMock.mockResolvedValue({ id: "user-1" });
+    issueSessionTokensMock.mockResolvedValue({
+      accessToken: "access-token",
+      refreshToken: "refresh-token"
+    });
 
-    const response = await request(createApp()).get("/api/auth/google");
+    const agent = request.agent(createApp());
+    const start = await agent.get("/api/auth/google");
 
-    if (response.status !== 302) {
-      expect(response.status).toBe(503);
+    if (start.status !== 302) {
+      expect(start.status).toBe(503);
       return;
     }
 
-    const cookieHeader = Array.isArray(response.headers["set-cookie"])
-      ? response.headers["set-cookie"].join(";")
-      : String(response.headers["set-cookie"] ?? "");
+    const startCookieList = Array.isArray(start.headers["set-cookie"]) ? start.headers["set-cookie"] : [];
+    const startCookieHeader = startCookieList.join(";");
 
-    expect(cookieHeader).toContain("mathsheets_oauth_state=");
-    expect(cookieHeader).toContain("HttpOnly");
-    expect(cookieHeader).toContain("Secure");
-    expect(cookieHeader).toContain("Path=/api/auth");
-    expect(cookieHeader).toContain("SameSite=None");
+    expect(startCookieHeader).toContain("mathsheets_oauth_state=");
+    expect(startCookieHeader).toContain("HttpOnly");
+    expect(startCookieHeader).toContain("Secure");
+    expect(startCookieHeader).toContain("Path=/api/auth");
+    expect(startCookieHeader).toContain("SameSite=None");
+    expect(startCookieHeader).toContain("Domain=mathsheet.app");
+
+    const stateCookie = startCookieList.find((value: string) => value.startsWith("mathsheets_oauth_state="));
+    const state = /mathsheets_oauth_state=([^;]+)/.exec(String(stateCookie))?.[1];
+
+    const callback = await agent
+      .get(`/api/auth/google/callback?code=test-code&state=${state}`)
+      .set("Cookie", [String(stateCookie)]);
+
+    expect(callback.status).toBe(302);
+
+    const callbackCookieHeader = Array.isArray(callback.headers["set-cookie"])
+      ? callback.headers["set-cookie"].join(";")
+      : String(callback.headers["set-cookie"] ?? "");
+
+    expect(callbackCookieHeader).toContain("mathsheets_oauth_state=;");
+    expect(callbackCookieHeader).toContain("Domain=mathsheet.app");
+    expect(callbackCookieHeader).toContain("Path=/api/auth");
   });
 
   it("returns 401 when the refresh cookie is missing", async () => {

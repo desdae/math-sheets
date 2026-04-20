@@ -16,21 +16,25 @@ import {
 
 export const authRouter = Router();
 const oauthStateCookieName = "mathsheets_oauth_state";
+const getAuthCookieDomain = () => (env.NODE_ENV === "production" ? env.COOKIE_DOMAIN : undefined);
 const getOAuthStateCookieOptions = () => ({
   httpOnly: true,
   sameSite: (env.NODE_ENV === "production" ? "none" : "lax") as "none" | "lax",
   secure: env.NODE_ENV === "production",
+  domain: getAuthCookieDomain(),
   path: "/api/auth"
 });
 const getRefreshCookieOptions = () => ({
   httpOnly: true,
   sameSite: (env.NODE_ENV === "production" ? "none" : "lax") as "none" | "lax",
   secure: env.NODE_ENV === "production",
+  domain: getAuthCookieDomain(),
   path: "/api/auth"
 });
-const authCookieClearOptions = {
+const getAuthCookieClearOptions = () => ({
+  domain: getAuthCookieDomain(),
   path: "/api/auth"
-};
+});
 
 const isRefreshTokenAuthError = (error: unknown) =>
   error instanceof Error && (error.message === "Missing refresh token" || error.message === "Refresh token is invalid");
@@ -68,7 +72,7 @@ authRouter.get(
       throw new HttpError(401, "Invalid oauth state");
     }
 
-    res.clearCookie(oauthStateCookieName, authCookieClearOptions);
+    res.clearCookie(oauthStateCookieName, getAuthCookieClearOptions());
     const profile = await exchangeCodeForGoogleProfile(code);
     const user = await findOrCreateUserFromGoogleProfile(profile);
     const { refreshToken } = await issueSessionTokens(user.id);
@@ -117,6 +121,6 @@ authRouter.post(
 
 authRouter.post("/logout", asyncHandler(async (req, res) => {
   await revokeRefreshTokenFromCookie(readRefreshTokenCookie(req));
-  res.clearCookie(refreshCookieName, authCookieClearOptions);
+  res.clearCookie(refreshCookieName, getAuthCookieClearOptions());
   res.status(204).send();
 }));
