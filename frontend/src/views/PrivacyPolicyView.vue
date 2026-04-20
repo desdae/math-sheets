@@ -33,7 +33,8 @@
         off unless you explicitly allow them through the consent controls.
       </p>
       <p>
-        Advertising / personalization features are reserved for future use and require opt-in before they are enabled.
+        If you opt into advertising, MathSheets may show unobtrusive Google AdSense placements on selected public pages.
+        Worksheet-solving and other high-interaction learning screens stay ad-free.
       </p>
     </section>
     <section class="legal-section">

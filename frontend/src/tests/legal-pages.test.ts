@@ -94,7 +94,7 @@ describe("legal routes and footer", () => {
 
     expect(privacyWrapper.text()).toContain("Google sign-in");
     expect(privacyWrapper.text()).toContain("Cookies and browser storage");
-    expect(privacyWrapper.text()).toContain("Advertising / personalization");
+    expect(privacyWrapper.text()).toContain("Google AdSense");
 
     await router.push("/terms");
 
