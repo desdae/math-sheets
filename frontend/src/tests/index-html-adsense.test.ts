@@ -13,4 +13,14 @@ describe("frontend index.html", () => {
     expect(html).toContain('src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=%VITE_ADSENSE_CLIENT_ID%"');
     expect(html).toContain('crossorigin="anonymous"');
   });
+
+  it("includes default SEO metadata for search and social previews", () => {
+    const html = readFileSync(indexHtmlPath, "utf8");
+
+    expect(html).toContain('name="description"');
+    expect(html).toContain('name="keywords"');
+    expect(html).toContain('property="og:title"');
+    expect(html).toContain('name="twitter:card"');
+    expect(html).toContain('rel="canonical"');
+  });
 });
