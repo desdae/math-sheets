@@ -11,7 +11,7 @@
   "vars": {
     "NODE_ENV": "production",
     "APP_BASE_URL": "https://mathsheet.app",
-    "GOOGLE_CALLBACK_URL": "https://mathsheet.app/api/auth/google/callback",
+    "GOOGLE_CALLBACK_URL": "https://api.mathsheet.app/api/auth/google/callback",
     "COOKIE_DOMAIN": "mathsheet.app"
   },
   "hyperdrive": [

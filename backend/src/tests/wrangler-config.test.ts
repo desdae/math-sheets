@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 const configPath = resolve(import.meta.dirname, "../../wrangler.jsonc");
 
 describe("backend wrangler config", () => {
-  it("points production auth redirects and cookies at the custom domain", () => {
+  it("points production auth redirects and cookies at the split frontend and api domains", () => {
     const config = JSON.parse(readFileSync(configPath, "utf8")) as {
       vars: {
         APP_BASE_URL: string;
@@ -17,7 +17,7 @@ describe("backend wrangler config", () => {
     };
 
     expect(config.vars.APP_BASE_URL).toBe("https://mathsheet.app");
-    expect(config.vars.GOOGLE_CALLBACK_URL).toBe("https://mathsheet.app/api/auth/google/callback");
+    expect(config.vars.GOOGLE_CALLBACK_URL).toBe("https://api.mathsheet.app/api/auth/google/callback");
     expect(config.vars.COOKIE_DOMAIN).toBe("mathsheet.app");
   });
 });
