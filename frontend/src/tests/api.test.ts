@@ -16,7 +16,9 @@ describe("resolveApiBaseUrl", () => {
     expect(resolveApiBaseUrl("", true, "http://localhost:5173")).toBe("http://localhost:3000/api");
   });
 
-  it("builds the Google sign-in URL from the production same-origin API base when no env override is set", () => {
-    expect(resolveGoogleAuthUrl("", false, "https://mathsheet.app")).toBe("https://mathsheet.app/api/auth/google");
+  it("builds the Google sign-in URL from the explicit API base when split-origin production is configured", () => {
+    expect(resolveGoogleAuthUrl("https://api.mathsheet.app/api", false, "https://mathsheet.app")).toBe(
+      "https://api.mathsheet.app/api/auth/google"
+    );
   });
 });
