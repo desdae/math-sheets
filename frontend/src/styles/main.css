@@ -1201,19 +1201,21 @@ legend {
   }
 
   .worksheet-answer-row {
-    grid-template-columns: minmax(0, 1fr) 92px;
+    display: flex;
     align-items: center;
     gap: 0.5rem;
   }
 
   .worksheet-answer-label {
+    flex: 0 0 auto;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: clip;
     line-height: 1.2;
   }
 
   .worksheet-answer-input {
+    flex: 1 1 72px;
+    min-width: 72px;
+    width: auto;
     margin-top: 0;
   }
 }

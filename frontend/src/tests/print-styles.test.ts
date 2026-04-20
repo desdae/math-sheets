@@ -14,6 +14,7 @@ describe("print stylesheet", () => {
     expect(css).toContain(".worksheet-review-panel");
     expect(css).toContain(".worksheet-answer-label");
     expect(css).toContain("white-space: nowrap");
-    expect(css).toContain("grid-template-columns: minmax(0, 1fr) 92px");
+    expect(css).toContain("display: flex");
+    expect(css).toContain("flex: 1 1 72px");
   });
 });
