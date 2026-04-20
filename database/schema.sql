@@ -97,7 +97,6 @@ CREATE TABLE IF NOT EXISTS worksheet_attempts (
   worksheet_id UUID NOT NULL REFERENCES worksheets(id) ON DELETE CASCADE,
   user_id UUID REFERENCES users(id) ON DELETE CASCADE,
   status worksheet_status NOT NULL DEFAULT 'draft',
-  save_revision INTEGER NOT NULL DEFAULT 0,
   elapsed_seconds INTEGER NOT NULL DEFAULT 0,
   started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   last_saved_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -106,9 +105,6 @@ CREATE TABLE IF NOT EXISTS worksheet_attempts (
   score_total INTEGER NOT NULL DEFAULT 0,
   accuracy_percentage NUMERIC(5, 2) NOT NULL DEFAULT 0
 );
-
-ALTER TABLE worksheet_attempts
-ADD COLUMN IF NOT EXISTS save_revision INTEGER NOT NULL DEFAULT 0;
 
 CREATE TABLE IF NOT EXISTS worksheet_answers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

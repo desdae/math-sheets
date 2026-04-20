@@ -234,7 +234,6 @@ const loadWorksheetForRoute = async () => {
         cleanDivisionOnly: boolean;
         createdAt: string;
         submittedAt?: string | null;
-        saveRevision?: number | null;
         elapsedSeconds?: number | null;
         result?: {
           scoreCorrect: number;
@@ -278,7 +277,6 @@ const loadWorksheetForRoute = async () => {
       localImportKey: payload.worksheet.id,
       createdAt: payload.worksheet.createdAt,
       submittedAt: payload.worksheet.submittedAt,
-      saveRevision: Number(payload.worksheet.saveRevision ?? 0),
       elapsedSeconds: Number(payload.worksheet.elapsedSeconds ?? 0),
       result: payload.worksheet.result
     });

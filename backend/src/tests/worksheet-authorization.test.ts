@@ -61,7 +61,6 @@ describe("worksheet ownership enforcement", () => {
       .set("Authorization", `Bearer ${signAccessToken("user-2")}`)
       .send({
         answers: [{ questionId: "00000000-0000-0000-0000-000000000001", answerText: "7" }],
-        saveRevision: 1,
         elapsedSeconds: 3,
         status: "partial"
       });

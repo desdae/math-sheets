@@ -35,7 +35,6 @@ export type WorksheetRecord = {
   localImportKey: string;
   createdAt: string;
   submittedAt?: string | null;
-  saveRevision: number;
   elapsedSeconds: number;
   result?: {
     scoreCorrect: number;
@@ -57,7 +56,6 @@ const normalizeElapsedSeconds = (value: unknown) => {
 };
 const normalizeWorksheetRecord = (record: WorksheetRecord): WorksheetRecord => ({
   ...record,
-  saveRevision: Number(record.saveRevision ?? 0),
   elapsedSeconds: normalizeElapsedSeconds(record.elapsedSeconds)
 });
 const cloneWorksheetRecord = (record: WorksheetRecord): WorksheetRecord => JSON.parse(JSON.stringify(record)) as WorksheetRecord;
@@ -75,7 +73,6 @@ const buildLocalWorksheet = (payload: {
   source: "local",
   localImportKey: randomKey(),
   createdAt: new Date().toISOString(),
-  saveRevision: 0,
   elapsedSeconds: 0
 });
 const buildRemoteWorksheetSummary = (record: WorksheetRecord): WorksheetSummaryRecord => ({
@@ -253,10 +250,6 @@ export const useWorksheetStore = defineStore("worksheet", {
           status: "draft" | "partial" | "completed";
           elapsedSeconds?: number | null;
         };
-        attempt?: {
-          saveRevision?: number | null;
-          save_revision?: number | null;
-        };
         questions: WorksheetQuestion[];
       }>("/worksheets", {
         method: "POST",
@@ -269,8 +262,7 @@ export const useWorksheetStore = defineStore("worksheet", {
         status: payload.worksheet.status,
         source: "remote",
         questions: payload.questions,
-        elapsedSeconds: Number(payload.worksheet.elapsedSeconds ?? record.elapsedSeconds ?? 0),
-        saveRevision: Number(payload.attempt?.saveRevision ?? payload.attempt?.save_revision ?? 0)
+        elapsedSeconds: Number(payload.worksheet.elapsedSeconds ?? record.elapsedSeconds ?? 0)
       };
       const summary = buildRemoteWorksheetSummary(this.activeWorksheet);
       const existingIndex = this.remoteWorksheets.findIndex((entry) => String(entry.id) === String(summary.id));
@@ -306,7 +298,6 @@ export const useWorksheetStore = defineStore("worksheet", {
             questionId: question.id,
             answerText: record.answers[index] ?? ""
           })),
-          saveRevision: (record.saveRevision = Number(record.saveRevision ?? 0) + 1),
           elapsedSeconds: record.elapsedSeconds,
           status: record.status === "draft" ? "draft" : "partial"
         })

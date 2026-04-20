@@ -50,7 +50,6 @@ describe("anonymous worksheets", () => {
       source: "local",
       localImportKey: "import-key",
       createdAt: new Date().toISOString(),
-      saveRevision: 0,
       elapsedSeconds: 125,
       submittedAt: new Date().toISOString(),
       result: {
@@ -88,8 +87,7 @@ describe("anonymous worksheets", () => {
           answers: [null],
           source: "local",
           localImportKey: "legacy-import-key",
-          createdAt: new Date().toISOString(),
-          saveRevision: 0
+          createdAt: new Date().toISOString()
         }
       ])
     );
@@ -137,7 +135,6 @@ describe("anonymous worksheets", () => {
       source: "local",
       localImportKey: "import-key",
       createdAt: "2026-04-10T09:00:00.000Z",
-      saveRevision: 0,
       elapsedSeconds: 305,
       submittedAt: "2026-04-10T09:05:00.000Z",
       result: {
@@ -207,68 +204,11 @@ describe("anonymous worksheets", () => {
       source: "remote",
       localImportKey: "remote-1",
       createdAt: "2026-04-10T09:00:00.000Z",
-      saveRevision: 0,
       elapsedSeconds: 125
     });
 
     expect(JSON.parse(String(apiFetchMock.mock.calls[0]?.[1]?.body))).toMatchObject({
       elapsedSeconds: 125
-    });
-  });
-
-  it("increments a save revision on each signed-in worksheet save", async () => {
-    setActivePinia(createPinia());
-    const authStore = useAuthStore();
-    const worksheetStore = useWorksheetStore();
-
-    authStore.user = {
-      id: "user-1",
-      email: "test@example.com",
-      publicNickname: "Test User"
-    };
-
-    apiFetchMock.mockResolvedValue(undefined);
-
-    const worksheet = {
-      id: "remote-1",
-      title: "Timed Worksheet",
-      status: "partial" as const,
-      config: {
-        problemCount: 1,
-        difficulty: "easy" as const,
-        allowedOperations: ["+"] as Array<"+" | "-" | "*" | "/">,
-        numberRangeMin: 1,
-        numberRangeMax: 10,
-        worksheetSize: "small" as const,
-        cleanDivisionOnly: true
-      },
-      questions: [
-        {
-          id: "question-1",
-          questionOrder: 1,
-          operation: "+" as const,
-          leftOperand: 2,
-          rightOperand: 2,
-          displayText: "2 + 2 =",
-          correctAnswer: 4
-        }
-      ],
-      answers: ["4"],
-      source: "remote" as const,
-      localImportKey: "remote-1",
-      createdAt: "2026-04-10T09:00:00.000Z",
-      saveRevision: 0,
-      elapsedSeconds: 125
-    };
-
-    await worksheetStore.saveProgress(worksheet);
-    await worksheetStore.saveProgress(worksheet);
-
-    expect(JSON.parse(String(apiFetchMock.mock.calls[0]?.[1]?.body))).toMatchObject({
-      saveRevision: 1
-    });
-    expect(JSON.parse(String(apiFetchMock.mock.calls[1]?.[1]?.body))).toMatchObject({
-      saveRevision: 2
     });
   });
 
@@ -311,7 +251,6 @@ describe("anonymous worksheets", () => {
       source: "remote",
       localImportKey: "remote-1",
       createdAt: "2026-04-10T09:00:00.000Z",
-      saveRevision: 0,
       elapsedSeconds: 125
     };
 
@@ -375,7 +314,6 @@ describe("anonymous worksheets", () => {
       source: "remote",
       localImportKey: "remote-1",
       createdAt: "2026-04-10T09:00:00.000Z",
-      saveRevision: 0,
       elapsedSeconds: 0
     };
 

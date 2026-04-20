@@ -45,7 +45,6 @@ const buildWorksheet = () => ({
   source: "local" as const,
   localImportKey: "local-import-1",
   createdAt: new Date().toISOString(),
-  saveRevision: 0,
   elapsedSeconds: 0,
   result: undefined
 });
@@ -182,7 +181,6 @@ describe("WorksheetView", () => {
           worksheetSize: "small",
           cleanDivisionOnly: true,
           createdAt: "2026-04-19T12:00:00.000Z",
-          saveRevision: 4,
           submittedAt: null,
           elapsedSeconds: 18,
           result: undefined

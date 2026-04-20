@@ -33,7 +33,6 @@ describe("saveWorksheetAnswers", () => {
         worksheetId: "worksheet-1",
         userId: "user-1",
         answers: [{ questionId: "question-1", answerText: "7" }],
-        saveRevision: 1,
         elapsedSeconds: 0,
         status: "partial"
       })
@@ -56,7 +55,6 @@ describe("saveWorksheetAnswers", () => {
         worksheetId: "worksheet-1",
         userId: "user-2",
         answers: [{ questionId: "question-1", answerText: "7" }],
-        saveRevision: 1,
         elapsedSeconds: 0,
         status: "partial"
       })
@@ -82,34 +80,11 @@ describe("saveWorksheetAnswers", () => {
       worksheetId: "worksheet-1",
       userId: "user-1",
       answers: [{ questionId: "question-1", answerText: "7" }],
-      saveRevision: 1,
       elapsedSeconds: 92,
       status: "partial"
     });
 
     expect(queryMock.mock.calls.some((call) => Array.isArray(call[1]) && call[1].includes(92))).toBe(true);
-  });
-
-  it("ignores stale partial saves when a newer revision is already stored", async () => {
-    queryMock
-      .mockResolvedValueOnce(undefined)
-      .mockResolvedValueOnce({ rows: [{ id: "worksheet-1", status: "partial" }] })
-      .mockResolvedValueOnce({ rows: [{ id: "attempt-1", save_revision: 3 }] })
-      .mockResolvedValueOnce(undefined);
-
-    const { saveWorksheetAnswers } = await import("../repositories/worksheet.repository.js");
-
-    await saveWorksheetAnswers({
-      worksheetId: "worksheet-1",
-      userId: "user-1",
-      answers: [{ questionId: "question-1", answerText: "7" }],
-      elapsedSeconds: 92,
-      status: "partial",
-      saveRevision: 2
-    } as never);
-
-    expect(queryMock.mock.calls.some((call) => String(call[0]).includes("INSERT INTO worksheet_answers"))).toBe(false);
-    expect(queryMock.mock.calls.some((call) => String(call[0]).includes("UPDATE worksheet_attempts"))).toBe(false);
   });
 
   it("does not update user statistics for non-competitive imported worksheets", async () => {
