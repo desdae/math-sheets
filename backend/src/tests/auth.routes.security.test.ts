@@ -55,6 +55,11 @@ vi.mock("../services/token.service.js", async () => {
 
 describe("google oauth security", () => {
   const originalNodeEnv = env.NODE_ENV;
+  const browserHeaders = {
+    "Accept-Language": "en-US,en;q=0.9",
+    "Sec-CH-UA-Platform": "\"Windows\"",
+    "User-Agent": "MathsheetsAuthTest/1.0"
+  };
 
   beforeEach(() => {
     env.NODE_ENV = originalNodeEnv;
@@ -87,6 +92,35 @@ describe("google oauth security", () => {
     expect(response.body.message).toContain("Invalid oauth state");
   });
 
+  it("accepts a valid signed oauth state when the browser drops the oauth cookie", async () => {
+    exchangeCodeForGoogleProfileMock.mockResolvedValue({
+      googleSub: "google-sub-1",
+      email: "kid@example.com",
+      displayName: "Kid Example",
+      avatarUrl: null
+    });
+    findOrCreateUserFromGoogleProfileMock.mockResolvedValue({ id: "user-1" });
+    issueSessionTokensMock.mockResolvedValue({
+      accessToken: "access-token",
+      refreshToken: "refresh-token"
+    });
+
+    const start = await request(createApp()).get("/api/auth/google").set(browserHeaders);
+
+    if (start.status !== 302) {
+      expect(start.status).toBe(503);
+      return;
+    }
+
+    const state = new URL(String(start.headers.location), "https://api.mathsheet.app").searchParams.get("state");
+    const callback = await request(createApp())
+      .get(`/api/auth/google/callback?code=test-code&state=${encodeURIComponent(String(state ?? ""))}`)
+      .set(browserHeaders);
+
+    expect(callback.status).toBe(302);
+    expect(callback.headers.location).toContain("/auth/callback");
+  });
+
   it("redirects without leaking an access token in the callback url", async () => {
     exchangeCodeForGoogleProfileMock.mockResolvedValue({
       googleSub: "google-sub-1",
@@ -101,7 +135,7 @@ describe("google oauth security", () => {
     });
 
     const agent = request.agent(createApp());
-    const start = await agent.get("/api/auth/google");
+    const start = await agent.get("/api/auth/google").set(browserHeaders);
 
     if (start.status !== 302) {
       expect(start.status).toBe(503);
@@ -113,7 +147,9 @@ describe("google oauth security", () => {
     const stateCookie = cookieList.find((value: string) => value.startsWith("mathsheets_oauth_state="));
     const state = /mathsheets_oauth_state=([^;]+)/.exec(String(stateCookie))?.[1];
 
-    const callback = await agent.get(`/api/auth/google/callback?code=test-code&state=${state}`);
+    const callback = await agent
+      .get(`/api/auth/google/callback?code=test-code&state=${state}`)
+      .set(browserHeaders);
 
     expect(callback.status).toBe(302);
     expect(callback.headers.location).toContain("/auth/callback");
@@ -193,7 +229,7 @@ describe("google oauth security", () => {
     });
 
     const agent = request.agent(createApp());
-    const start = await agent.get("/api/auth/google");
+    const start = await agent.get("/api/auth/google").set(browserHeaders);
 
     if (start.status !== 302) {
       expect(start.status).toBe(503);
@@ -215,6 +251,7 @@ describe("google oauth security", () => {
 
     const callback = await agent
       .get(`/api/auth/google/callback?code=test-code&state=${state}`)
+      .set(browserHeaders)
       .set("Cookie", [String(stateCookie)]);
 
     expect(callback.status).toBe(302);

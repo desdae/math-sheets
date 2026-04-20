@@ -1,5 +1,6 @@
-import { randomBytes } from "node:crypto";
-import { Router } from "express";
+import { createHash, randomBytes } from "node:crypto";
+import { type Request, Router } from "express";
+import jwt from "jsonwebtoken";
 import { env } from "../config/env.js";
 import { asyncHandler } from "../lib/async-handler.js";
 import { HttpError } from "../lib/http-error.js";
@@ -16,6 +17,40 @@ import {
 
 export const authRouter = Router();
 const oauthStateCookieName = "mathsheets_oauth_state";
+type OAuthStatePayload = {
+  purpose: "oauth-state";
+  fingerprint: string;
+  nonce: string;
+};
+
+const getOAuthStateFingerprint = (req: Request) =>
+  createHash("sha256")
+    .update([req.get("user-agent") ?? "", req.get("accept-language") ?? "", req.get("sec-ch-ua-platform") ?? ""].join("|"))
+    .digest("hex");
+const signOAuthState = (req: Request) =>
+  jwt.sign(
+    {
+      purpose: "oauth-state",
+      fingerprint: getOAuthStateFingerprint(req),
+      nonce: randomBytes(24).toString("hex")
+    } satisfies OAuthStatePayload,
+    env.JWT_ACCESS_SECRET,
+    { expiresIn: "10m" }
+  );
+const hasValidSignedOAuthState = (state: string, req: Request) => {
+  try {
+    const payload = jwt.verify(state, env.JWT_ACCESS_SECRET) as Partial<OAuthStatePayload>;
+
+    return (
+      payload.purpose === "oauth-state" &&
+      payload.fingerprint === getOAuthStateFingerprint(req) &&
+      typeof payload.nonce === "string" &&
+      payload.nonce.length > 0
+    );
+  } catch {
+    return false;
+  }
+};
 const getOAuthStateCookieOptions = () => ({
   httpOnly: true,
   sameSite: "lax" as const,
@@ -41,12 +76,12 @@ const getRefreshCookieClearOptions = () => ({
 const isRefreshTokenAuthError = (error: unknown) =>
   error instanceof Error && (error.message === "Missing refresh token" || error.message === "Refresh token is invalid");
 
-authRouter.get("/google", (_req, res) => {
+authRouter.get("/google", (req, res) => {
   if (!isGoogleOAuthConfigured()) {
     return res.status(503).send("Google OAuth is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET, then restart the backend.");
   }
 
-  const state = randomBytes(24).toString("hex");
+  const state = signOAuthState(req);
 
   res.cookie(oauthStateCookieName, state, getOAuthStateCookieOptions());
 
@@ -69,8 +104,10 @@ authRouter.get(
     const code = String(req.query.code ?? "");
     const callbackState = String(req.query.state ?? "");
     const cookieState = String(req.cookies?.[oauthStateCookieName] ?? "");
+    const hasMatchingStateCookie = Boolean(cookieState) && callbackState === cookieState;
+    const hasValidSignedState = callbackState ? hasValidSignedOAuthState(callbackState, req) : false;
 
-    if (!callbackState || !cookieState || callbackState !== cookieState) {
+    if (!callbackState || (!hasMatchingStateCookie && !hasValidSignedState)) {
       throw new HttpError(401, "Invalid oauth state");
     }
 
