@@ -1151,10 +1151,17 @@ legend {
 @media print {
   header,
   nav,
+  footer,
   .app-actions,
   .button,
   .modal-backdrop,
-  .non-printable {
+  .non-printable,
+  .worksheet-review-panel,
+  .worksheet-result-card,
+  .worksheet-save-status,
+  .worksheet-progress-summary,
+  .worksheet-progress-bar,
+  .worksheet-timer-label {
     display: none !important;
   }
 
@@ -1181,5 +1188,32 @@ legend {
 
   .worksheet-grid-size-large {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .worksheet-page-shell {
+    gap: 1rem;
+  }
+
+  .worksheet-answer-shell,
+  .worksheet-cell {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .worksheet-answer-row {
+    grid-template-columns: minmax(0, 1fr) 92px;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .worksheet-answer-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip;
+    line-height: 1.2;
+  }
+
+  .worksheet-answer-input {
+    margin-top: 0;
   }
 }
