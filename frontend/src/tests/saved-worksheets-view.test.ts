@@ -1,6 +1,6 @@
 import { mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   buildWorksheetChips,
   buildWorksheetDateGroups,
@@ -99,6 +99,8 @@ const localWorksheet = {
 const createWrapper = () => mount(SavedWorksheetsView);
 
 beforeEach(() => {
+  vi.useFakeTimers();
+  vi.setSystemTime(now);
   push.mockReset();
   setActivePinia(createPinia());
 
@@ -108,6 +110,10 @@ beforeEach(() => {
   authStore.user = null;
   worksheetStore.anonymousWorksheets = [localWorksheet];
   worksheetStore.remoteWorksheets = records;
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 describe("saved-worksheets helpers", () => {
@@ -136,6 +142,11 @@ describe("saved-worksheets helpers", () => {
   it("applies multi-select filters across status, difficulty, and operation", () => {
     const filtered = filterWorksheetRecords(records, new Set(["completed", "medium", "addition"]));
     expect(filtered.map((item) => item.id)).toEqual(["today-1"]);
+  });
+
+  it("applies date filters relative to the supplied current date", () => {
+    const filtered = filterWorksheetRecords(records, new Set(["date:this-week"]), now);
+    expect(filtered.map((item) => item.id)).toEqual(["today-1", "week-1"]);
   });
 
   it("uses the richer worksheet chip label for size filters", () => {
