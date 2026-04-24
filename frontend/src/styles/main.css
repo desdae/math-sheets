@@ -961,6 +961,33 @@ legend {
   gap: 0.35rem;
 }
 
+.landing-topic-links {
+  display: grid;
+  gap: 1rem;
+}
+
+.topic-link-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.topic-link-grid a {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.55rem 0.85rem;
+  border-radius: 999px;
+  background: #f7f1ea;
+  border: 1px solid rgba(30, 31, 41, 0.08);
+  color: var(--text);
+  font-weight: 700;
+}
+
+.topic-link-grid a:hover {
+  border-color: rgba(207, 92, 54, 0.28);
+  color: var(--accent);
+}
+
 .seo-landing-cta {
   display: grid;
   gap: 0.85rem;

@@ -18,4 +18,15 @@ describe("button layout styles", () => {
     expect(css).toContain("align-items: center;");
     expect(css).toContain("justify-content: center;");
   });
+
+  it("gives homepage topic links their own spaced layout", () => {
+    const css = readFileSync(mainCssPath, "utf8");
+
+    expect(css).toContain(".landing-topic-links");
+    expect(css).toContain(".topic-link-grid");
+    expect(css).toContain("display: flex;");
+    expect(css).toContain("flex-wrap: wrap;");
+    expect(css).toContain("gap: 0.75rem;");
+    expect(css).toContain(".topic-link-grid a");
+  });
 });
