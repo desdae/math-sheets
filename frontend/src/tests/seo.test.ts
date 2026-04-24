@@ -33,4 +33,47 @@ describe("SEO helpers", () => {
       "https://mathsheet.app/login"
     );
   });
+
+  it("injects structured data and optional social image metadata", () => {
+    applySeo({
+      title: "Printable Addition Worksheets | MathSheets",
+      description: "Create free printable addition worksheets with answer support.",
+      canonicalPath: "/addition-worksheets",
+      imagePath: "/social/addition-worksheets.png",
+      schema: [
+        {
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          name: "Printable Addition Worksheets | MathSheets",
+          url: "https://mathsheet.app/addition-worksheets"
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: [
+            {
+              "@type": "Question",
+              name: "Can I create easier addition worksheets for beginners?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "Yes."
+              }
+            }
+          ]
+        }
+      ]
+    });
+
+    expect(document.head.querySelector('meta[property="og:image"]')?.getAttribute("content")).toBe(
+      "https://mathsheet.app/social/addition-worksheets.png"
+    );
+    expect(document.head.querySelector('meta[name="twitter:image"]')?.getAttribute("content")).toBe(
+      "https://mathsheet.app/social/addition-worksheets.png"
+    );
+
+    const schemaScripts = Array.from(document.head.querySelectorAll('script[type="application/ld+json"][data-seo-schema]'));
+    expect(schemaScripts).toHaveLength(2);
+    expect(schemaScripts[0].textContent).toContain('"@type":"WebPage"');
+    expect(schemaScripts[1].textContent).toContain('"@type":"FAQPage"');
+  });
 });

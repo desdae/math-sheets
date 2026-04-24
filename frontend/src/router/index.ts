@@ -1,4 +1,42 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router";
+import { type SeoLandingPage, seoPages } from "../content/seo-pages";
+
+const siteUrl = "https://mathsheet.app";
+
+const buildWebPageSchema = (page: SeoLandingPage) => ({
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  name: page.title,
+  description: page.description,
+  url: `${siteUrl}/${page.slug}`
+});
+
+const buildFaqSchema = (page: SeoLandingPage) => ({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: page.faqs.map((faq) => ({
+    "@type": "Question",
+    name: faq.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: faq.answer
+    }
+  }))
+});
+
+const seoLandingRoutes: RouteRecordRaw[] = seoPages.map((page) => ({
+  path: `/${page.slug}`,
+  component: () => import("../views/SeoLandingPageView.vue"),
+  props: { slug: page.slug },
+  meta: {
+    title: page.title,
+    description: page.description,
+    keywords: page.keywords,
+    canonicalPath: `/${page.slug}`,
+    schemaSlug: page.slug,
+    schema: [buildWebPageSchema(page), buildFaqSchema(page)]
+  }
+}));
 
 export const routes: RouteRecordRaw[] = [
   {
@@ -12,6 +50,7 @@ export const routes: RouteRecordRaw[] = [
         "printable math worksheets, math practice, arithmetic worksheets, addition worksheets, subtraction worksheets, multiplication worksheets, division worksheets"
     }
   },
+  ...seoLandingRoutes,
   {
     path: "/login",
     component: () => import("../views/LoginView.vue"),

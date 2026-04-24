@@ -23,4 +23,12 @@ describe("frontend index.html", () => {
     expect(html).toContain('name="twitter:card"');
     expect(html).toContain('rel="canonical"');
   });
+
+  it("includes a site-level web application schema block", () => {
+    const html = readFileSync(indexHtmlPath, "utf8");
+
+    expect(html).toContain('"@type": "WebApplication"');
+    expect(html).toContain('"applicationCategory": "EducationalApplication"');
+    expect(html).toContain('"operatingSystem": "Web"');
+  });
 });

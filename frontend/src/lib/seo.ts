@@ -7,12 +7,16 @@ const defaultDescription =
 const defaultKeywords =
   "math worksheets, printable math worksheets, arithmetic practice, addition worksheets, subtraction worksheets, multiplication worksheets, division worksheets, homeschool math, teacher resources, student practice";
 
+type SchemaNode = Record<string, unknown>;
+
 type SeoMeta = {
   title?: string;
   description?: string;
   robots?: string;
   canonicalPath?: string;
   keywords?: string;
+  imagePath?: string;
+  schema?: SchemaNode[];
 };
 
 const resolveSiteUrl = () => {
@@ -35,6 +39,38 @@ const upsertHeadTag = (selector: string, createElement: () => HTMLElement, updat
   }
 };
 
+const removeHeadTag = (selector: string) => {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  document.head.querySelector(selector)?.remove();
+};
+
+const removeSeoSchemaScripts = () => {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  document.head.querySelectorAll('script[data-seo-schema="true"]').forEach((node) => node.remove());
+};
+
+const appendSeoSchema = (schema: SchemaNode[]) => {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  removeSeoSchemaScripts();
+
+  for (const node of schema) {
+    const script = document.createElement("script");
+    script.setAttribute("type", "application/ld+json");
+    script.setAttribute("data-seo-schema", "true");
+    script.textContent = JSON.stringify(node);
+    document.head.appendChild(script);
+  }
+};
+
 export const applySeo = (meta: SeoMeta = {}) => {
   if (typeof document === "undefined") {
     return;
@@ -47,6 +83,9 @@ export const applySeo = (meta: SeoMeta = {}) => {
   const robots = meta.robots || "index, follow";
   const canonicalPath = meta.canonicalPath ?? (typeof window !== "undefined" ? window.location.pathname : "/");
   const canonicalUrl = `${siteUrl}${canonicalPath.startsWith("/") ? canonicalPath : `/${canonicalPath}`}`;
+  const imageUrl = meta.imagePath
+    ? `${siteUrl}${meta.imagePath.startsWith("/") ? meta.imagePath : `/${meta.imagePath}`}`
+    : undefined;
 
   document.title = title;
 
@@ -80,6 +119,15 @@ export const applySeo = (meta: SeoMeta = {}) => {
     element.setAttribute("content", canonicalUrl);
   });
 
+  if (imageUrl) {
+    upsertHeadTag('meta[property="og:image"]', () => document.createElement("meta"), (element) => {
+      element.setAttribute("property", "og:image");
+      element.setAttribute("content", imageUrl);
+    });
+  } else {
+    removeHeadTag('meta[property="og:image"]');
+  }
+
   upsertHeadTag('meta[name="twitter:title"]', () => document.createElement("meta"), (element) => {
     element.setAttribute("name", "twitter:title");
     element.setAttribute("content", title);
@@ -90,10 +138,21 @@ export const applySeo = (meta: SeoMeta = {}) => {
     element.setAttribute("content", description);
   });
 
+  if (imageUrl) {
+    upsertHeadTag('meta[name="twitter:image"]', () => document.createElement("meta"), (element) => {
+      element.setAttribute("name", "twitter:image");
+      element.setAttribute("content", imageUrl);
+    });
+  } else {
+    removeHeadTag('meta[name="twitter:image"]');
+  }
+
   upsertHeadTag('link[rel="canonical"]', () => document.createElement("link"), (element) => {
     element.setAttribute("rel", "canonical");
     element.setAttribute("href", canonicalUrl);
   });
+
+  appendSeoSchema(meta.schema ?? []);
 };
 
 const routeSeo = (meta: RouteMeta, path: string): SeoMeta => ({
@@ -101,6 +160,8 @@ const routeSeo = (meta: RouteMeta, path: string): SeoMeta => ({
   description: typeof meta.description === "string" ? meta.description : undefined,
   robots: typeof meta.robots === "string" ? meta.robots : undefined,
   keywords: typeof meta.keywords === "string" ? meta.keywords : undefined,
+  imagePath: typeof meta.imagePath === "string" ? meta.imagePath : undefined,
+  schema: Array.isArray(meta.schema) ? (meta.schema as SchemaNode[]) : undefined,
   canonicalPath: path
 });
 
