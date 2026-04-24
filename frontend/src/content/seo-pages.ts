@@ -3,6 +3,8 @@ export type SeoFaq = {
   answer: string;
 };
 
+export type SeoWorksheetOperation = "+" | "-" | "*" | "/";
+
 export type SeoLandingPage = {
   slug: string;
   title: string;
@@ -17,6 +19,7 @@ export type SeoLandingPage = {
   relatedSlugs: string[];
   ctaLabel: string;
   ctaDescription: string;
+  generatorOperations?: SeoWorksheetOperation[];
 };
 
 export const seoPages: SeoLandingPage[] = [
@@ -78,7 +81,8 @@ export const seoPages: SeoLandingPage[] = [
     ],
     relatedSlugs: ["printable-math-worksheets", "subtraction-worksheets", "grade-1-math-worksheets"],
     ctaLabel: "Create an addition worksheet",
-    ctaDescription: "Open the generator and choose the range and difficulty that fit your learners."
+    ctaDescription: "Open the generator and choose the range and difficulty that fit your learners.",
+    generatorOperations: ["+"]
   },
   {
     slug: "subtraction-worksheets",
@@ -108,7 +112,8 @@ export const seoPages: SeoLandingPage[] = [
     ],
     relatedSlugs: ["addition-worksheets", "mixed-operations-worksheets", "grade-2-math-worksheets"],
     ctaLabel: "Create a subtraction worksheet",
-    ctaDescription: "Generate subtraction practice that matches the number range and pace your students need."
+    ctaDescription: "Generate subtraction practice that matches the number range and pace your students need.",
+    generatorOperations: ["-"]
   },
   {
     slug: "multiplication-worksheets",
@@ -138,7 +143,8 @@ export const seoPages: SeoLandingPage[] = [
     ],
     relatedSlugs: ["division-worksheets", "grade-3-math-worksheets", "printable-math-worksheets"],
     ctaLabel: "Create a multiplication worksheet",
-    ctaDescription: "Build a multiplication practice sheet for times tables, reviews, or quick daily drills."
+    ctaDescription: "Build a multiplication practice sheet for times tables, reviews, or quick daily drills.",
+    generatorOperations: ["*"]
   },
   {
     slug: "division-worksheets",
@@ -168,7 +174,8 @@ export const seoPages: SeoLandingPage[] = [
     ],
     relatedSlugs: ["multiplication-worksheets", "mixed-operations-worksheets", "grade-3-math-worksheets"],
     ctaLabel: "Create a division worksheet",
-    ctaDescription: "Open the generator and create printable division practice for review, homework, or fact fluency."
+    ctaDescription: "Open the generator and create printable division practice for review, homework, or fact fluency.",
+    generatorOperations: ["/"]
   },
   {
     slug: "mixed-operations-worksheets",
@@ -198,7 +205,8 @@ export const seoPages: SeoLandingPage[] = [
     ],
     relatedSlugs: ["printable-math-worksheets", "addition-worksheets", "division-worksheets"],
     ctaLabel: "Create a mixed operations worksheet",
-    ctaDescription: "Generate a printable worksheet that combines operations for fuller arithmetic review."
+    ctaDescription: "Generate a printable worksheet that combines operations for fuller arithmetic review.",
+    generatorOperations: ["+", "-", "*", "/"]
   },
   {
     slug: "math-worksheets-with-answers",
@@ -258,7 +266,8 @@ export const seoPages: SeoLandingPage[] = [
     ],
     relatedSlugs: ["addition-worksheets", "subtraction-worksheets", "grade-2-math-worksheets"],
     ctaLabel: "Create a grade 1 math worksheet",
-    ctaDescription: "Generate first-grade-friendly arithmetic practice with a simple range and easy print layout."
+    ctaDescription: "Generate first-grade-friendly arithmetic practice with a simple range and easy print layout.",
+    generatorOperations: ["+", "-"]
   },
   {
     slug: "grade-2-math-worksheets",
@@ -288,7 +297,8 @@ export const seoPages: SeoLandingPage[] = [
     ],
     relatedSlugs: ["subtraction-worksheets", "grade-1-math-worksheets", "grade-3-math-worksheets"],
     ctaLabel: "Create a grade 2 math worksheet",
-    ctaDescription: "Build a printable second-grade worksheet with the range and difficulty level your learners need."
+    ctaDescription: "Build a printable second-grade worksheet with the range and difficulty level your learners need.",
+    generatorOperations: ["+", "-"]
   },
   {
     slug: "grade-3-math-worksheets",
@@ -318,7 +328,8 @@ export const seoPages: SeoLandingPage[] = [
     ],
     relatedSlugs: ["multiplication-worksheets", "division-worksheets", "grade-2-math-worksheets"],
     ctaLabel: "Create a grade 3 math worksheet",
-    ctaDescription: "Generate printable third-grade arithmetic practice for times tables, division, and mixed review."
+    ctaDescription: "Generate printable third-grade arithmetic practice for times tables, division, and mixed review.",
+    generatorOperations: ["*", "/"]
   }
 ];
 

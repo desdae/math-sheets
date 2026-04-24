@@ -25,6 +25,30 @@ describe("router", () => {
 
     expect(wrapper.text()).toContain("Printable math practice");
   });
+
+  it("prefills the generator from landing-page operation query parameters", async () => {
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes
+    });
+
+    router.push("/generate?operations=%2F");
+    await router.isReady();
+
+    const wrapper = mount(App, {
+      global: {
+        plugins: [router, createPinia()]
+      }
+    });
+
+    const chips = wrapper.findAll(".operation-chip");
+    expect(chips[0].classes()).not.toContain("operation-chip-active");
+    expect(chips[1].classes()).not.toContain("operation-chip-active");
+    expect(chips[2].classes()).not.toContain("operation-chip-active");
+    expect(chips[3].classes()).toContain("operation-chip-active");
+    expect(wrapper.text()).toContain("Division");
+    expect(wrapper.text()).not.toContain("Addition, Subtraction");
+  });
 });
 
 describe("GeneratorForm", () => {

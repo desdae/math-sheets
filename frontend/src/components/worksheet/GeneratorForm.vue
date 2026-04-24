@@ -140,6 +140,10 @@
 import { computed, reactive } from "vue";
 import type { WorksheetConfig } from "../../stores/worksheet";
 
+const props = defineProps<{
+  initialOperations?: WorksheetConfig["allowedOperations"];
+}>();
+
 const emit = defineEmits<{
   generate: [payload: WorksheetConfig];
 }>();
@@ -155,7 +159,7 @@ const operationLabels: Record<WorksheetConfig["allowedOperations"][number], stri
 const form = reactive<WorksheetConfig>({
   problemCount: 12,
   difficulty: "easy",
-  allowedOperations: ["+", "-"],
+  allowedOperations: props.initialOperations?.length ? [...props.initialOperations] : ["+", "-"],
   numberRangeMin: 1,
   numberRangeMax: 10,
   worksheetSize: "medium",

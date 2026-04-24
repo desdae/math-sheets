@@ -43,7 +43,7 @@
     <section class="card seo-landing-cta">
       <h2>{{ page.ctaLabel }}</h2>
       <p>{{ page.ctaDescription }}</p>
-      <RouterLink class="button" to="/generate">{{ page.ctaLabel }}</RouterLink>
+      <RouterLink class="button" :to="generatorTarget">{{ page.ctaLabel }}</RouterLink>
     </section>
   </section>
 </template>
@@ -63,4 +63,15 @@ const relatedPages = computed(() =>
     .map((slug) => getSeoPageBySlug(slug))
     .filter((item): item is NonNullable<typeof item> => Boolean(item))
 );
+const generatorTarget = computed(() => {
+  if (!page.value?.generatorOperations?.length) {
+    return "/generate";
+  }
+
+  const params = new URLSearchParams({
+    operations: page.value.generatorOperations.join(",")
+  });
+
+  return `/generate?${params.toString()}`;
+});
 </script>

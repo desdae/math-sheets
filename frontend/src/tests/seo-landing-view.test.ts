@@ -21,7 +21,7 @@ describe("SEO landing page view", () => {
     expect(wrapper.text()).toContain("Best for");
     expect(wrapper.text()).toContain("Can I create easier addition worksheets for beginners?");
     expect(wrapper.text()).toContain("Create an addition worksheet");
-    expect(wrapper.html()).toContain('href="/generate"');
+    expect(wrapper.html()).toContain('href="/generate?operations=%2B"');
     expect(wrapper.html()).toContain('href="/subtraction-worksheets"');
   });
 });

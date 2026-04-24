@@ -8,19 +8,40 @@
       </div>
     </div>
 
-    <GeneratorForm @generate="handleGenerate" />
+    <GeneratorForm :initial-operations="initialOperations" @generate="handleGenerate" />
   </section>
 </template>
 
 <script setup lang="ts">
-import { useRouter } from "vue-router";
+import { computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import GeneratorForm from "../components/worksheet/GeneratorForm.vue";
 import { useAuthStore } from "../stores/auth";
 import { type WorksheetConfig, useWorksheetStore } from "../stores/worksheet";
 
 const authStore = useAuthStore();
+const route = useRoute();
 const worksheetStore = useWorksheetStore();
 const router = useRouter();
+
+const supportedOperations = ["+", "-", "*", "/"] as const;
+const initialOperations = computed<WorksheetConfig["allowedOperations"] | undefined>(() => {
+  const rawOperations = route.query.operations;
+  const source = Array.isArray(rawOperations) ? rawOperations[0] : rawOperations;
+
+  if (typeof source !== "string") {
+    return undefined;
+  }
+
+  const parsed = source
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item): item is WorksheetConfig["allowedOperations"][number] =>
+      supportedOperations.includes(item as WorksheetConfig["allowedOperations"][number])
+    );
+
+  return parsed.length > 0 ? parsed : undefined;
+});
 
 const handleGenerate = async (config: WorksheetConfig) => {
   const worksheet = await worksheetStore.generateWorksheet(config);
