@@ -12,6 +12,15 @@ import { testAuthRouter } from "./routes/test-auth.routes.js";
 import { userRouter } from "./routes/user.routes.js";
 import { worksheetRouter } from "./routes/worksheet.routes.js";
 
+const getCorsOrigins = () =>
+  Array.from(
+    new Set(
+      [env.APP_BASE_URL, ...env.CORS_ALLOWED_ORIGINS.split(",")]
+        .map((origin) => origin.trim())
+        .filter(Boolean)
+    )
+  );
+
 export const createApp = () => {
   const app = express();
   app.disable("etag");
@@ -53,7 +62,7 @@ export const createApp = () => {
   );
   app.use(
     cors({
-      origin: env.APP_BASE_URL,
+      origin: getCorsOrigins(),
       credentials: true
     })
   );

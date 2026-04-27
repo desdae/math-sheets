@@ -11,6 +11,7 @@
   "vars": {
     "NODE_ENV": "production",
     "APP_BASE_URL": "https://mathsheet.app",
+    "CORS_ALLOWED_ORIGINS": "https://mathsheet.app,https://www.mathsheet.app",
     "GOOGLE_CALLBACK_URL": "https://api.mathsheet.app/api/auth/google/callback",
     "COOKIE_DOMAIN": "mathsheet.app"
   },
